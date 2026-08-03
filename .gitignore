@@ -1,0 +1,41 @@
+# Operating-system and editor files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.log
+
+# Recovery archives and local backups
+map_recovery.zip
+map_recovery/
+中医_备份_*/
+.git.*backup*/
+
+# Local agent state and generated rendering
+.agents/
+prd_render/
+
+# Sensitive or unreviewed source collections
+中医/
+参考资料/
+
+# Binary assets require explicit privacy review before versioning
+*.doc
+*.docx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.wav
+*.mp3
+*.mp4
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+private/
+patient-data/
