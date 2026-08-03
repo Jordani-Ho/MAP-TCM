@@ -5,6 +5,14 @@ Desktop.ini
 *.tmp
 *.log
 
+# Python and local runtime
+__pycache__/
+*.py[cod]
+.venv/
+.local/
+.coverage
+htmlcov/
+
 # Recovery archives and local backups
 map_recovery.zip
 map_recovery/

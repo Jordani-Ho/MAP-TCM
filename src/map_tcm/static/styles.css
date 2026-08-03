@@ -1,0 +1,129 @@
+:root {
+  color-scheme: light;
+  --ink: #18221f;
+  --muted: #64706b;
+  --paper: #f4f1e8;
+  --surface: #fffdf8;
+  --line: #d8d2c4;
+  --green: #1f5a46;
+  --green-soft: #e0eee7;
+  --red: #8c3d35;
+  --gold: #9b752d;
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(155, 117, 45, 0.12), transparent 30rem),
+    var(--paper);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.75rem clamp(1.25rem, 4vw, 4rem);
+  color: white;
+  background: #173f34;
+  border-bottom: 4px solid var(--gold);
+}
+
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 0; font-size: clamp(1.5rem, 4vw, 2.4rem); font-weight: 650; }
+h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+
+.eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.topbar .eyebrow { color: #e6c886; }
+.safety-badge { padding: 0.65rem 0.9rem; border: 1px solid #d7c18e; border-radius: 999px; white-space: nowrap; }
+
+main { width: min(1180px, calc(100% - 2rem)); margin: 1.5rem auto 3rem; }
+
+.notice {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.25rem;
+  background: #fff1d6;
+  border: 1px solid #dfc27e;
+  border-radius: 12px;
+}
+
+.notice strong { color: #6d4e0e; white-space: nowrap; }
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.25rem;
+}
+
+.metric, .panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(42, 45, 39, 0.06);
+}
+
+.metric { padding: 1rem; }
+.metric b { display: block; margin-top: 0.2rem; font-size: 1.8rem; color: var(--green); }
+.metric span { font-size: 0.84rem; color: var(--muted); }
+
+.workspace-grid { display: grid; grid-template-columns: 1.4fr 0.9fr; gap: 1.25rem; }
+.panel { padding: 1.25rem; }
+.panel-heading { display: flex; align-items: start; justify-content: space-between; }
+.muted { color: var(--muted); line-height: 1.6; }
+
+.encounter-list { display: grid; gap: 0.75rem; }
+.encounter-card { padding: 1rem; border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 10px; background: white; }
+.encounter-card.signed { border-left-color: var(--green); }
+.encounter-card h3 { margin: 0.3rem 0; font-size: 1rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 0.45rem 0.8rem; color: var(--muted); font-size: 0.82rem; }
+.status { display: inline-block; padding: 0.18rem 0.5rem; border-radius: 999px; background: var(--green-soft); color: var(--green); font-weight: 700; }
+
+label { display: block; margin: 0.9rem 0 0.35rem; font-weight: 650; }
+select, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  color: var(--ink);
+  background: white;
+  border: 1px solid #b9b2a4;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.button-stack { display: grid; gap: 0.6rem; margin-top: 1rem; }
+button { padding: 0.72rem 0.9rem; color: var(--green); background: var(--green-soft); border: 1px solid #a7c3b6; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer; }
+button:hover { filter: brightness(0.97); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+button.primary { color: white; background: var(--green); border-color: var(--green); }
+button.secondary { padding: 0.45rem 0.7rem; background: transparent; }
+
+.message { min-height: 1.5rem; margin-top: 0.8rem; color: var(--green); font-weight: 650; }
+.message.error { color: var(--red); }
+
+.audit-panel { margin-top: 1.25rem; }
+.audit-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
+.audit-event { padding: 0.7rem; background: #f7f5ef; border-radius: 8px; font-size: 0.84rem; }
+.audit-event code { color: var(--green); }
+
+footer { padding: 1.5rem; color: var(--muted); text-align: center; font-size: 0.82rem; }
+
+@media (max-width: 820px) {
+  .topbar, .notice { align-items: flex-start; flex-direction: column; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace-grid, .audit-list { grid-template-columns: 1fr; }
+  .safety-badge { white-space: normal; }
+}
