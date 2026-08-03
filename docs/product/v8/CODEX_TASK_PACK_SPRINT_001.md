@@ -4,10 +4,12 @@
 
 Turn the recovered design repository into a governed, runnable, synthetic-data-only Alpha foundation.
 
+This task pack covers only the first implementation slice. The canonical twelve-task V8 plan is maintained in `V8_ENGINEERING_BACKLOG.md`.
+
 | Task | Result | Acceptance |
 | --- | --- | --- |
-| TCM-ENG-001 | Repository governance and developer baseline | UTF-8 docs, repeatable commands, CI, safety rules |
-| TCM-ENG-002 | Runnable application skeleton | Storage, service boundary, HTTP API, browser workbench, tests |
+| TCM-ENG-001 | Repository governance and developer baseline | Implemented; under review in PR #1 |
+| TCM-ENG-002 | Runnable application skeleton | Implemented; under review in PR #1 |
 
 ## Definition of done
 
@@ -19,4 +21,4 @@ Turn the recovered design repository into a governed, runnable, synthetic-data-o
 
 ## Next sprint candidate
 
-TCM-ENG-003: structured initial-visit capture with field-level provenance and physician validation, using synthetic cases only.
+TCM-CLIN-001 must first define and validate the initial/follow-up field dictionary with the first collaborating physician. TCM-ENG-003 follows that gate and remains synthetic-data-only.
