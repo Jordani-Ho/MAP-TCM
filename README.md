@@ -1,6 +1,8 @@
 # AI 中医病历助手（MAP-TCM）
 
-MAP-TCM 是一个以医生为主导的中医临床记录、动态健康观察与随访辅助底座。首个产品是 **TCM Copilot V8.0 Alpha**：帮助医生整理病历、记录辨证依据、比较历次就诊并追踪疗效；不替代诊断、处方或医生的最终决定。
+MAP-TCM 是一个以医生为主导的中医临床记录、动态健康观察与随访辅助底座，也是由医生、患者及其受控智能体共同建设的健康知识公地。代码只是实现载体；共同知识可追溯、可争议并持续演进，个人身份与原始健康资料仍由本人及其授权范围控制。
+
+首个产品是 **TCM Copilot V8.0 Alpha**：帮助医生整理病历、记录辨证依据、比较历次就诊并追踪疗效；不替代诊断、处方或医生的最终决定。
 
 ## 当前交付
 
@@ -35,6 +37,7 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 | MAP-005 | [Medical Memory 与证据](docs/MAP-005-medical-memory-and-evidence.md) | 可追溯记忆模型 |
 | MAP-006 | [Alpha 系统架构](docs/MAP-006-alpha-system-architecture.md) | 模块、数据流与安全控制 |
 | MAP-007 | [临床工作流](docs/MAP-007-clinical-workflows.md) | 初诊、复诊与随访流程 |
+| MAP-008 | [健康知识公地与共同大脑宪章](docs/MAP-008-health-knowledge-commons.md) | 医患智能体共同知识、个人数据主权与开放治理 |
 
 开发说明见 [本地开发指南](docs/development/LOCAL_DEVELOPMENT.md)，安全边界见 [合成数据政策](docs/security/SYNTHETIC_DATA_ONLY.md)。
 

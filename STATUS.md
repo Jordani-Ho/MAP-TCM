@@ -19,6 +19,7 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 - 10 项自动化测试及独立 localhost 启动验证通过；
 - 统一 V8/V9/V10 Roadmap、Founder Dashboard 和 V8 工程 Backlog。
 - 完成 PR #1 范围复核并转为 Ready for review。
+- 新增 Founder 批准的 MAP-008 健康知识公地与共同大脑宪章。
 
 ## 当前决策
 
@@ -26,6 +27,8 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 - 中国合作医生首端采用中文 Web/PWA，微信后置为通知入口；
 - 国内模型通过可替换适配器接入，默认不开启；
 - 历史医家方向只能建设非官方、有来源、非冒充的学术研究助手；
+- MAP 定位为面向医生、患者及其智能体的健康知识公地；开放治理不等于公开原始病历；
+- 经典来源只读固定，解释、争议与共识通过追加式版本演进；
 - 真实健康资料和自主 AI 诊疗继续禁止。
 
 ## 尚未具备
@@ -37,6 +40,7 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 - 加密、密钥、备份恢复与保留策略；
 - 真实临床试点或互联网诊疗资质；
 - AI 模型调用、诊断或处方能力。
+- 社区许可栈、贡献协议、知识状态机及真实贡献退出机制。
 
 ## 下一步
 

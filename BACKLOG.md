@@ -6,6 +6,7 @@
 | --- | --- | --- | --- |
 | REC-001 至 REC-007 | P0 | Completed | 项目恢复、Git 基线与私有 GitHub |
 | MAP-PMO-002 | P0 | Completed | 已统一 Roadmap、Dashboard、Backlog，PR #1 已转 Ready |
+| MAP-GOV-008 | P0 | Completed | 健康知识公地与共同大脑宪章 Draft Baseline |
 | TCM-ENG-001 | P0 | Under Review | 仓库治理与开发基线 |
 | TCM-ENG-002 | P0 | Under Review | 可运行 Alpha 骨架、工作台和测试 |
 | TCM-CLIN-001 | P0 | Ready | 初诊/复诊字段字典及合作医生评审 |
@@ -16,4 +17,5 @@
 | TCM-DATA-001 | P1 | Pending | 迁移、导出、备份与恢复 |
 | TCM-AI-001 | P1 | Gated | 国内模型可替换草稿适配器 |
 | TCM-KNOW-001 | P2 | Gated Research | 历史医家学术资料研究助手 |
+| MAP-KNOW-002 | P1 | Ready | 合成知识贡献、争议、评审与共识状态机 |
 | TCM-QA-001 | P0 | Pending | V8 合成病例端到端验收 |
