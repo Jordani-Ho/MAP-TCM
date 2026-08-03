@@ -4,9 +4,9 @@
 
 ## 当前阶段
 
-TCM Copilot V8.0 Alpha：`Foundation Under Review`。
+TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 
-恢复工作已经完成。工程地基已在功能分支实现并通过本地测试和 GitHub Actions，但 PR #1 尚未合并，因此 TCM-ENG-001/002 当前正式状态为 `Under Review`。
+恢复工作与 MAP-PMO-002 已经完成。工程地基已在功能分支实现，通过本地测试和 GitHub Actions；PR #1 已从 Draft 转为 Ready for review。由于尚未合并，TCM-ENG-001/002 当前正式状态仍为 `Under Review`。
 
 ## 已完成
 
@@ -18,6 +18,7 @@ TCM Copilot V8.0 Alpha：`Foundation Under Review`。
 - 实现合成数据门禁、有效同意、医生审核签署和追加式审计；
 - 10 项自动化测试及独立 localhost 启动验证通过；
 - 统一 V8/V9/V10 Roadmap、Founder Dashboard 和 V8 工程 Backlog。
+- 完成 PR #1 范围复核并转为 Ready for review。
 
 ## 当前决策
 
@@ -39,4 +40,4 @@ TCM Copilot V8.0 Alpha：`Foundation Under Review`。
 
 ## 下一步
 
-完成 MAP-PMO-002 的测试、提交与 PR 审查；通过后推进 TCM-CLIN-001，由第一位合作医生使用合成病例确认字段、顺序、必填与可跳过项。
+推进 TCM-CLIN-001，由第一位合作医生使用合成病例确认字段、顺序、必填与可跳过项；随后实现 TCM-ENG-003 结构化初诊。

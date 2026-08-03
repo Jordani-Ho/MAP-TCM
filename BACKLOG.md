@@ -5,7 +5,7 @@
 | ID | 优先级 | 状态 | 任务 |
 | --- | --- | --- | --- |
 | REC-001 至 REC-007 | P0 | Completed | 项目恢复、Git 基线与私有 GitHub |
-| MAP-PMO-002 | P0 | In Progress | 统一 Roadmap、Dashboard、Backlog 并审查 PR #1 |
+| MAP-PMO-002 | P0 | Completed | 已统一 Roadmap、Dashboard、Backlog，PR #1 已转 Ready |
 | TCM-ENG-001 | P0 | Under Review | 仓库治理与开发基线 |
 | TCM-ENG-002 | P0 | Under Review | 可运行 Alpha 骨架、工作台和测试 |
 | TCM-CLIN-001 | P0 | Ready | 初诊/复诊字段字典及合作医生评审 |

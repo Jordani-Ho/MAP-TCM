@@ -2,7 +2,7 @@
 
 更新时间：2026-08-03
 当前版本：TCM Copilot V8.0 Alpha
-当前阶段：Foundation Under Review
+当前阶段：Foundation Ready for Review
 
 ## 一、总体状态
 
@@ -27,8 +27,8 @@
 - 仓库：私有 `MAP-TCM`
 - 基线：`main` @ `8545755`
 - 工作分支：`agent/tcm-alpha-skeleton`
-- PR：#1 `feat: establish runnable MAP-TCM Alpha`
-- 当前审查结论：完成 MAP-PMO-002 和复验后决定是否转 Ready。
+- PR：#1 `feat: establish governed runnable MAP-TCM Alpha`
+- 当前审查结论：本地复验与 GitHub Actions 均通过；PR 可合并，已转为 Ready for review。
 
 ## 三、刚完成
 
@@ -37,14 +37,15 @@
 - TCM-ENG-002：可运行 Alpha 骨架实现；
 - 合成数据、同意门禁、医生签署和审计测试；
 - V8/V9/V10 路线重新统一。
+- MAP-PMO-002 完成，PR #1 已完成 Ready 审查。
 
 ## 四、当前最高优先级
 
-1. 完成 MAP-PMO-002 并审查 PR #1；
-2. 完成 TCM-CLIN-001 临床字段字典；
-3. 让第一位合作医生用合成病例审查初诊流程；
-4. 实现 TCM-ENG-003 结构化初诊；
-5. 实现 TCM-ENG-004 复诊差异比较。
+1. 完成 TCM-CLIN-001 临床字段字典；
+2. 让第一位合作医生用合成病例审查初诊流程；
+3. 实现 TCM-ENG-003 结构化初诊；
+4. 实现 TCM-ENG-004 复诊差异比较；
+5. 在临床字段与安全门禁稳定后启动中国医生 Web/PWA 原型。
 
 ## 五、Founder 已决定
 
