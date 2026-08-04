@@ -48,5 +48,8 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 - [Founder Dashboard](FOUNDER_DASHBOARD.md)
 - [V8 完整工程 Backlog](docs/product/v8/V8_ENGINEERING_BACKLOG.md)
 - [中国合作医生临时客户端方案](docs/product/v8/CHINA_DOCTOR_PILOT.md)
+- [初诊/复诊字段字典候选版](docs/clinical/TCM_CLIN_001_FIELD_DICTIONARY.md)
+- [合作医生评审指南](docs/clinical/TCM_CLIN_001_DOCTOR_REVIEW_GUIDE.md)
+- [TCM-CLIN-001 合成病例](docs/clinical/TCM_CLIN_001_SYNTHETIC_CASE.md)
 - [历史医家学术研究助手政策](docs/governance/HISTORICAL_MEDICAL_SCHOLAR_AI_POLICY.md)
 - [合成知识公地状态机 ADR](docs/architecture/ADR-002-knowledge-commons-state-machine.md)

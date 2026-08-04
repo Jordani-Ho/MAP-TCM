@@ -9,7 +9,7 @@
 | MAP-GOV-008 | P0 | Completed | 健康知识公地与共同大脑宪章 Draft Baseline |
 | TCM-ENG-001 | P0 | Under Review | 仓库治理与开发基线 |
 | TCM-ENG-002 | P0 | Under Review | 可运行 Alpha 骨架、工作台和测试 |
-| TCM-CLIN-001 | P0 | Ready | 初诊/复诊字段字典及合作医生评审 |
+| TCM-CLIN-001 | P0 | Ready for Doctor Review | 候选字段合同、合成病例与评审脚本已就绪；等待合作医生确认 |
 | TCM-ENG-003 | P0 | Pending | 结构化初诊与字段来源 |
 | TCM-ENG-004 | P0 | Pending | 复诊差异与疗效追踪 |
 | TCM-PILOT-001 | P0 | Proposed | 中国医生临时 Web/PWA |

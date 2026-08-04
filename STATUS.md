@@ -16,11 +16,12 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 - 实现仓库治理、开发命令和 CI；
 - 实现 SQLite、服务层、HTTP API 和浏览器工作台；
 - 实现合成数据门禁、有效同意、医生审核签署和追加式审计；
-- 10 项自动化测试及独立 localhost 启动验证通过；
+- 26 项自动化测试及独立 localhost 启动验证通过；
 - 统一 V8/V9/V10 Roadmap、Founder Dashboard 和 V8 工程 Backlog。
 - 完成 PR #1 范围复核并转为 Ready for review。
 - 新增 Founder 批准的 MAP-008 健康知识公地与共同大脑宪章。
 - 实现 MAP-KNOW-002 合成知识贡献、主张/反主张、评审、共识快照和撤回状态机，等待 PR 合并。
+- 完成 TCM-CLIN-001 初诊/复诊候选字段合同、合成病例和医生评审脚本；工程验证通过后进入合作医生评审，不宣称临床确认。
 
 ## 当前决策
 
@@ -35,7 +36,7 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 
 ## 尚未具备
 
-- 经合作医生确认的初诊/复诊字段字典；
+- 经合作医生确认的初诊/复诊字段字典（候选版已就绪，等待评审）；
 - 完整字段级来源与动态健康时间线；
 - 复诊差异、干预版本和患者摘要；
 - 生产身份、照护关系、会话和权限；
@@ -46,4 +47,4 @@ TCM Copilot V8.0 Alpha：`Foundation Ready for Review`。
 
 ## 下一步
 
-推进 TCM-CLIN-001，由第一位合作医生使用合成病例确认字段、顺序、必填与可跳过项；随后实现 TCM-ENG-003 结构化初诊。
+安排第一位合作医生使用 `SYN-CLIN-001` 合成病例评审字段、顺序、必填与可跳过项；将结论固化为字段合同 0.2.0 后，再实现 TCM-ENG-003 结构化初诊。

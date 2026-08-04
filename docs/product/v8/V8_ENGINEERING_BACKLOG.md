@@ -30,7 +30,7 @@
 | MAP-PMO-002 | Completed | 统一 Roadmap、Dashboard 与 Backlog；审查 PR #1 | 文档、测试、PR 审查完成 |
 | MAP-GOV-008 | Completed | 健康知识公地与共同大脑宪章 | Founder Approved / Draft Baseline |
 | MAP-KNOW-002 | Under Review | 合成贡献、争议、评审、共识与撤回状态机 | 代码、API、测试与 ADR 已提交，等待合并 |
-| TCM-CLIN-001 | Ready | 初诊/复诊字段字典与医生评审 | 合作医生确认字段、顺序、必填与可跳过项 |
+| TCM-CLIN-001 | Ready for Doctor Review | 0.1.0 候选字段合同、合成病例与医生评审 | 合作医生确认字段、顺序、必填与可跳过项，固化 0.2.0 |
 | TCM-UX-001 | Pending | 医生问诊顺序与最小交互 | 完成一次合成病例桌面演练 |
 | TCM-AI-001 | Gated | 国内模型可替换 AI 草稿适配器 | ENG-003/004 稳定；评测集、安全审查和引用协议完成 |
 | TCM-KNOW-001 | Gated Research | 历史医家学术资料研究助手 | 权利、来源、非冒充、AI 标识和临床安全审查通过 |
