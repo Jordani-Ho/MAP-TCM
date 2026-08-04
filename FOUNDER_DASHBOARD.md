@@ -11,6 +11,7 @@
 | 项目恢复 | Completed | H 盘备份、Git 基线、私有 GitHub |
 | MAP-000 至 MAP-007 | Draft Baseline | 八份核心协议已保存且未被工程提交改写 |
 | MAP-008 共同大脑宪章 | Founder Approved | 健康知识公地、个人数据主权、经典完整性与防御性开放 |
+| MAP-KNOW-002 合成状态机 | Under Review | 贡献、授权、主张/反主张、医生门控共识、撤回与审计 |
 | 仓库治理 | Under Review | PR #1，CI 已通过 |
 | 可运行工程骨架 | Under Review | 本地启动、10 项测试、GitHub Actions |
 | 临床字段体系 | Ready | 等待第一位合作医生评审字段和顺序 |
@@ -40,6 +41,7 @@
 - V8/V9/V10 路线重新统一。
 - MAP-PMO-002 完成，PR #1 已完成 Ready 审查。
 - MAP-008 完成 Founder Approved / Draft Baseline。
+- MAP-KNOW-002 已实现合成知识状态机并通过本地测试，等待 PR 合并。
 
 ## 四、当前最高优先级
 
@@ -48,7 +50,7 @@
 3. 实现 TCM-ENG-003 结构化初诊；
 4. 实现 TCM-ENG-004 复诊差异比较；
 5. 在临床字段与安全门禁稳定后启动中国医生 Web/PWA 原型。
-6. 用合成贡献实现 MAP-KNOW-002 知识状态机。
+6. 在真实贡献前完成许可栈、贡献协议和退出语义审查。
 
 ## 五、Founder 已决定
 

@@ -8,6 +8,7 @@ from typing import Any, Callable, Iterable
 from urllib.parse import unquote
 
 from .errors import DomainError
+from .knowledge import KnowledgeService
 from .service import ClinicalService
 from .store import SQLiteStore
 
@@ -20,6 +21,7 @@ class MapApplication:
         self.store = SQLiteStore(database_path)
         self.store.initialize()
         self.service = ClinicalService(self.store)
+        self.knowledge = KnowledgeService(self.store)
         self.service.seed_synthetic_demo()
         self.static_root = Path(__file__).with_name("static")
 
@@ -39,6 +41,93 @@ class MapApplication:
                 )
             if method == "GET" and path == "/api/v1/overview":
                 return self._json(start_response, 200, self.store.overview())
+            if method == "GET" and path == "/api/v1/knowledge":
+                return self._json(start_response, 200, self.knowledge.overview())
+            if method == "POST" and path == "/api/v1/knowledge/contributions":
+                payload = self._payload(environ)
+                contributor_id = self._required(payload, "contributor_id")
+                result = self.knowledge.create_contribution(
+                    subject_code=self._required(payload, "subject_code"),
+                    is_synthetic=payload.get("is_synthetic") is True,
+                    contributor_id=contributor_id,
+                    contributor_role=self._required(payload, "contributor_role"),
+                    content=self._required(payload, "content"),
+                    source_ref=self._required(payload, "source_ref"),
+                    access_level=self._required(payload, "access_level"),
+                    withdrawal_rule=self._required(payload, "withdrawal_rule"),
+                    actor_id=payload.get("actor_id", contributor_id),
+                )
+                return self._json(start_response, 201, result)
+
+            contribution_action_match = re.fullmatch(
+                r"/api/v1/knowledge/contributions/([^/]+)/(consent|withdraw)", path
+            )
+            if method == "POST" and contribution_action_match:
+                payload = self._payload(environ)
+                contribution_id = contribution_action_match.group(1)
+                if contribution_action_match.group(2) == "consent":
+                    result = self.knowledge.consent_contribution(
+                        contribution_id=contribution_id,
+                        consent_reference=self._required(payload, "consent_reference"),
+                        actor_id=self._required(payload, "actor_id"),
+                        actor_role=self._required(payload, "actor_role"),
+                    )
+                else:
+                    result = self.knowledge.withdraw_contribution(
+                        contribution_id=contribution_id,
+                        reason=self._required(payload, "reason"),
+                        actor_id=self._required(payload, "actor_id"),
+                        actor_role=self._required(payload, "actor_role"),
+                    )
+                return self._json(start_response, 200, result)
+
+            if method == "POST" and path == "/api/v1/knowledge/claims":
+                payload = self._payload(environ)
+                parent_claim_id = payload.get("parent_claim_id")
+                if parent_claim_id is not None and not isinstance(parent_claim_id, str):
+                    raise DomainError("invalid_parent_claim", "父主张编号格式无效。")
+                result = self.knowledge.create_claim(
+                    contribution_id=self._required(payload, "contribution_id"),
+                    claim_kind=self._required(payload, "claim_kind"),
+                    statement=self._required(payload, "statement"),
+                    source_ref=self._required(payload, "source_ref"),
+                    author_id=self._required(payload, "author_id"),
+                    author_role=self._required(payload, "author_role"),
+                    parent_claim_id=parent_claim_id,
+                )
+                return self._json(start_response, 201, result)
+
+            claim_action_match = re.fullmatch(
+                r"/api/v1/knowledge/claims/([^/]+)/(submit|reviews|snapshots)", path
+            )
+            if method == "POST" and claim_action_match:
+                payload = self._payload(environ)
+                claim_id = claim_action_match.group(1)
+                action = claim_action_match.group(2)
+                if action == "submit":
+                    result = self.knowledge.submit_claim_for_review(
+                        claim_id=claim_id,
+                        actor_id=self._required(payload, "actor_id"),
+                        actor_role=self._required(payload, "actor_role"),
+                    )
+                    return self._json(start_response, 200, result)
+                if action == "reviews":
+                    result = self.knowledge.add_review(
+                        claim_id=claim_id,
+                        verdict=self._required(payload, "verdict"),
+                        rationale=self._required(payload, "rationale"),
+                        reviewer_id=self._required(payload, "reviewer_id"),
+                        reviewer_role=self._required(payload, "reviewer_role"),
+                    )
+                    return self._json(start_response, 201, result)
+                result = self.knowledge.create_consensus_snapshot(
+                    claim_id=claim_id,
+                    target_state=self._required(payload, "target_state"),
+                    summary=self._required(payload, "summary"),
+                    actor_id=self._required(payload, "actor_id"),
+                    actor_role=self._required(payload, "actor_role"),
+                )
+                return self._json(start_response, 201, result)
             if method == "POST" and path == "/api/v1/encounters":
                 payload = self._payload(environ)
                 result = self.service.create_encounter(
@@ -143,7 +232,14 @@ class MapApplication:
         payload: dict[str, Any],
     ) -> list[bytes]:
         body = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
-        reasons = {200: "OK", 201: "Created", 400: "Bad Request", 403: "Forbidden", 404: "Not Found"}
+        reasons = {
+            200: "OK",
+            201: "Created",
+            400: "Bad Request",
+            403: "Forbidden",
+            404: "Not Found",
+            409: "Conflict",
+        }
         start_response(f"{status_code} {reasons.get(status_code, 'Error')}", self._headers("application/json; charset=utf-8", len(body)))
         return [body]
 

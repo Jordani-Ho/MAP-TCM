@@ -12,6 +12,7 @@ MAP-TCM 是一个以医生为主导的中医临床记录、动态健康观察与
 - `draft → doctor_reviewed → signed` 临床记录状态机；
 - 医生签署边界与 AI 草稿隔离；
 - SQLite 本地存储和浏览器工作台；
+- 合成知识贡献、主张/反主张、医生评审、共识快照和追加式撤回；
 - 自动化测试及 GitHub Actions CI。
 
 这只是用于验证产品与工程契约的本地工作台，**禁止输入真实患者资料，也不得用于实际诊疗**。
@@ -48,3 +49,4 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 - [V8 完整工程 Backlog](docs/product/v8/V8_ENGINEERING_BACKLOG.md)
 - [中国合作医生临时客户端方案](docs/product/v8/CHINA_DOCTOR_PILOT.md)
 - [历史医家学术研究助手政策](docs/governance/HISTORICAL_MEDICAL_SCHOLAR_AI_POLICY.md)
+- [合成知识公地状态机 ADR](docs/architecture/ADR-002-knowledge-commons-state-machine.md)

@@ -74,6 +74,100 @@ CREATE TABLE IF NOT EXISTS assessments (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS knowledge_contributions (
+    id TEXT PRIMARY KEY,
+    subject_code TEXT NOT NULL,
+    is_synthetic INTEGER NOT NULL CHECK (is_synthetic = 1),
+    contributor_id TEXT NOT NULL,
+    contributor_role TEXT NOT NULL CHECK (
+        contributor_role IN ('patient', 'doctor', 'researcher', 'ai')
+    ),
+    content TEXT NOT NULL,
+    source_ref TEXT NOT NULL,
+    access_level TEXT NOT NULL CHECK (
+        access_level IN ('private', 'restricted', 'commons_candidate')
+    ),
+    withdrawal_rule TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_contribution_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    contribution_id TEXT NOT NULL REFERENCES knowledge_contributions(id),
+    state TEXT NOT NULL CHECK (
+        state IN ('private_draft', 'consented_contribution', 'withdrawn')
+    ),
+    actor_id TEXT NOT NULL,
+    actor_role TEXT NOT NULL,
+    occurred_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_claims (
+    id TEXT PRIMARY KEY,
+    contribution_id TEXT NOT NULL REFERENCES knowledge_contributions(id),
+    claim_kind TEXT NOT NULL CHECK (claim_kind IN ('claim', 'counterclaim')),
+    parent_claim_id TEXT REFERENCES knowledge_claims(id),
+    statement TEXT NOT NULL,
+    source_ref TEXT NOT NULL,
+    author_id TEXT NOT NULL,
+    author_role TEXT NOT NULL CHECK (
+        author_role IN ('patient', 'doctor', 'researcher', 'ai')
+    ),
+    created_at TEXT NOT NULL,
+    CHECK (
+        (claim_kind = 'claim' AND parent_claim_id IS NULL)
+        OR (claim_kind = 'counterclaim' AND parent_claim_id IS NOT NULL)
+    )
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_claim_state_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    claim_id TEXT NOT NULL REFERENCES knowledge_claims(id),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK (
+        to_state IN (
+            'deidentified_candidate', 'peer_review', 'provisional_knowledge',
+            'validated_snapshot', 'disputed', 'retracted'
+        )
+    ),
+    actor_id TEXT NOT NULL,
+    actor_role TEXT NOT NULL,
+    occurred_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_reviews (
+    id TEXT PRIMARY KEY,
+    claim_id TEXT NOT NULL REFERENCES knowledge_claims(id),
+    reviewer_id TEXT NOT NULL,
+    reviewer_role TEXT NOT NULL CHECK (
+        reviewer_role IN ('patient', 'doctor', 'researcher', 'ai')
+    ),
+    verdict TEXT NOT NULL CHECK (
+        verdict IN ('support', 'oppose', 'needs_evidence')
+    ),
+    rationale TEXT NOT NULL,
+    is_advisory INTEGER NOT NULL CHECK (is_advisory IN (0, 1)),
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS consensus_snapshots (
+    id TEXT PRIMARY KEY,
+    claim_id TEXT NOT NULL REFERENCES knowledge_claims(id),
+    state TEXT NOT NULL CHECK (
+        state IN ('provisional_knowledge', 'validated_snapshot', 'disputed')
+    ),
+    summary TEXT NOT NULL,
+    review_count INTEGER NOT NULL,
+    doctor_support_count INTEGER NOT NULL,
+    doctor_oppose_count INTEGER NOT NULL,
+    active_counterclaim_count INTEGER NOT NULL,
+    created_by TEXT NOT NULL,
+    created_by_role TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS audit_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_type TEXT NOT NULL,
@@ -87,6 +181,18 @@ CREATE TABLE IF NOT EXISTS audit_events (
 CREATE INDEX IF NOT EXISTS idx_consents_patient ON consents(patient_id);
 CREATE INDEX IF NOT EXISTS idx_encounters_patient ON encounters(patient_id);
 CREATE INDEX IF NOT EXISTS idx_observations_encounter ON observations(encounter_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_contribution_events
+    ON knowledge_contribution_events(contribution_id, id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_claim_contribution
+    ON knowledge_claims(contribution_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_claim_parent
+    ON knowledge_claims(parent_claim_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_claim_states
+    ON knowledge_claim_state_events(claim_id, id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_reviews_claim
+    ON knowledge_reviews(claim_id);
+CREATE INDEX IF NOT EXISTS idx_consensus_claim
+    ON consensus_snapshots(claim_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_events(object_type, object_id);
 """
 

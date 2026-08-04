@@ -17,5 +17,5 @@
 | TCM-DATA-001 | P1 | Pending | 迁移、导出、备份与恢复 |
 | TCM-AI-001 | P1 | Gated | 国内模型可替换草稿适配器 |
 | TCM-KNOW-001 | P2 | Gated Research | 历史医家学术资料研究助手 |
-| MAP-KNOW-002 | P1 | Ready | 合成知识贡献、争议、评审与共识状态机 |
+| MAP-KNOW-002 | P1 | Under Review | 合成知识贡献、争议、评审、共识与撤回状态机 |
 | TCM-QA-001 | P0 | Pending | V8 合成病例端到端验收 |

@@ -48,6 +48,41 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(404, status)
         self.assertEqual("not_found", payload["error"])
 
+    def test_synthetic_knowledge_contribution_api(self) -> None:
+        status, contribution = self.request(
+            "POST",
+            "/api/v1/knowledge/contributions",
+            {
+                "subject_code": "SYN-API-KNOW-001",
+                "is_synthetic": True,
+                "contributor_id": "synthetic_patient_api",
+                "contributor_role": "patient",
+                "content": "Synthetic knowledge contribution through HTTP.",
+                "source_ref": "synthetic://api/SYN-API-KNOW-001",
+                "access_level": "commons_candidate",
+                "withdrawal_rule": "Append withdrawal and stop future use.",
+            },
+        )
+        self.assertEqual(201, status)
+        self.assertEqual("private_draft", contribution["state"])
+
+        status, consent = self.request(
+            "POST",
+            f"/api/v1/knowledge/contributions/{contribution['id']}/consent",
+            {
+                "consent_reference": "synthetic-consent://api/v1",
+                "actor_id": "synthetic_patient_api",
+                "actor_role": "patient",
+            },
+        )
+        self.assertEqual(200, status)
+        self.assertEqual("consented_contribution", consent["state"])
+
+        status, overview = self.request("GET", "/api/v1/knowledge")
+        self.assertEqual(200, status)
+        self.assertEqual("synthetic_only", overview["mode"])
+        self.assertEqual(1, overview["counts"]["consented_contributions"])
+
 
 if __name__ == "__main__":
     unittest.main()

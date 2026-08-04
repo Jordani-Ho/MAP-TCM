@@ -129,7 +129,7 @@ SYN-FOUNDER-001
 
 MAP-008 作为 V8、V9、V10 的共同治理主轴：V8 验证合成贡献和可追溯临床记录；V9 验证医生授权经验与智能体修改理由；V10 建立可由医生、患者和机构共同参与、但保留个人数据主权的联邦式知识公地。
 
-状态：Founder Approved / Draft Baseline。
+状态：Synthetic Commons Implemented / Under Review。MAP-008 已获 Founder 批准；MAP-KNOW-002 已实现合成贡献、争议、评审、共识和撤回状态机，尚未合并。
 
 ## 八、历史医家学术研究方向
 

@@ -1,6 +1,6 @@
 # TCM Copilot V8.0 Canonical Engineering Backlog
 
-版本：0.2
+版本：0.3
 状态：Active
 更新日期：2026-08-03
 
@@ -27,7 +27,9 @@
 
 | ID | 状态 | 任务 | 解除条件 |
 | --- | --- | --- | --- |
-| MAP-PMO-002 | In Progress | 统一 Roadmap、Dashboard 与 Backlog；审查 PR #1 | 文档、测试、PR 审查完成 |
+| MAP-PMO-002 | Completed | 统一 Roadmap、Dashboard 与 Backlog；审查 PR #1 | 文档、测试、PR 审查完成 |
+| MAP-GOV-008 | Completed | 健康知识公地与共同大脑宪章 | Founder Approved / Draft Baseline |
+| MAP-KNOW-002 | Under Review | 合成贡献、争议、评审、共识与撤回状态机 | 代码、API、测试与 ADR 已提交，等待合并 |
 | TCM-CLIN-001 | Ready | 初诊/复诊字段字典与医生评审 | 合作医生确认字段、顺序、必填与可跳过项 |
 | TCM-UX-001 | Pending | 医生问诊顺序与最小交互 | 完成一次合成病例桌面演练 |
 | TCM-AI-001 | Gated | 国内模型可替换 AI 草稿适配器 | ENG-003/004 稳定；评测集、安全审查和引用协议完成 |
@@ -38,6 +40,7 @@
 ```text
 MAP-PMO-002
 → PR #1 Ready / Merge decision
+→ MAP-GOV-008 + MAP-KNOW-002
 → TCM-CLIN-001 + TCM-UX-001
 → TCM-ENG-003
 → TCM-ENG-004
