@@ -13,6 +13,7 @@ MAP-TCM 是一个以医生为主导的中医临床记录、动态健康观察与
 - 医生签署边界与 AI 草稿隔离；
 - SQLite 本地存储和浏览器工作台；
 - 合成知识贡献、主张/反主张、医生评审、共识快照和追加式撤回；
+- 面向 2–3 名合作医生和合成患者体验者的中文合成评审门户与千问/豆包提示词；
 - 自动化测试及 GitHub Actions CI。
 
 这只是用于验证产品与工程契约的本地工作台，**禁止输入真实患者资料，也不得用于实际诊疗**。
@@ -48,6 +49,8 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 - [Founder Dashboard](FOUNDER_DASHBOARD.md)
 - [V8 完整工程 Backlog](docs/product/v8/V8_ENGINEERING_BACKLOG.md)
 - [中国合作医生临时客户端方案](docs/product/v8/CHINA_DOCTOR_PILOT.md)
+- [医患并行合成评审运行手册](docs/pilot/TCM_PILOT_001_REVIEW_RUNBOOK.md)
+- [合成评审门户源码](portal/README.md)
 - [初诊/复诊字段字典候选版](docs/clinical/TCM_CLIN_001_FIELD_DICTIONARY.md)
 - [合作医生评审指南](docs/clinical/TCM_CLIN_001_DOCTOR_REVIEW_GUIDE.md)
 - [TCM-CLIN-001 合成病例](docs/clinical/TCM_CLIN_001_SYNTHETIC_CASE.md)

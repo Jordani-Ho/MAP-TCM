@@ -12,7 +12,7 @@
 | TCM-CLIN-001 | P0 | Ready for Doctor Review | 候选字段合同、合成病例与评审脚本已就绪；等待合作医生确认 |
 | TCM-ENG-003 | P0 | Pending | 结构化初诊与字段来源 |
 | TCM-ENG-004 | P0 | Pending | 复诊差异与疗效追踪 |
-| TCM-PILOT-001 | P0 | Proposed | 中国医生临时 Web/PWA |
+| TCM-PILOT-001 | P0 | Synthetic Review Ready | 医生/患者中文评审门户、千问/豆包提示词与本地 JSON 导出已就绪；等待并行评审 |
 | TCM-SEC-001 | P0 | Pending | 身份、角色、会话与威胁模型 |
 | TCM-DATA-001 | P1 | Pending | 迁移、导出、备份与恢复 |
 | TCM-AI-001 | P1 | Gated | 国内模型可替换草稿适配器 |

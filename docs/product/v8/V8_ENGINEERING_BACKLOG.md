@@ -18,7 +18,7 @@
 | TCM-ENG-006 | Pending | 辨证、干预与版本关系 | 医生判断、治则、方药/非药物干预、调整理由、历史版本 |
 | TCM-ENG-007 | Pending | 医生审核后的患者摘要 | 只引用已签署且授权内容；确定性模板先行 |
 | TCM-ENG-008 | Pending | 患者每日最小记录体验 | 少量变化驱动问题；不形成填写负担；紧急信息人工升级 |
-| TCM-PILOT-001 | Proposed | 中国医生临时 Web/PWA | 中文移动端、邀请登录、合成病例、审核签署、操作反馈 |
+| TCM-PILOT-001 | Synthetic Review Ready | 中国医生/患者合成评审门户 | 中文移动端、千问/豆包提示词、合成病例、匿名反馈和本地 JSON 导出已实现；邀请登录与签署待后续安全门禁 |
 | TCM-SEC-001 | Pending | 身份、角色与会话威胁模型 | 医生身份、照护关系、最小权限、会话、审计和滥用测试 |
 | TCM-DATA-001 | Pending | 迁移、导出、备份与恢复 | 版本化迁移；最小导出；恢复演练；无静默丢失 |
 | TCM-QA-001 | Pending | V8 合成病例端到端验收 | 建档至摘要闭环；安全负向测试；医生可用性评审 |
@@ -43,13 +43,13 @@ MAP-PMO-002
 → PR #1 Ready / Merge decision
 → MAP-GOV-008 + MAP-KNOW-002
 → MAP-KNOW-003 architecture baseline
-→ TCM-CLIN-001 + TCM-UX-001
+→ TCM-PILOT-001 synthetic review + TCM-CLIN-001 + TCM-UX-001
 → TCM-ENG-003
 → TCM-ENG-004
 → TCM-ENG-005 + TCM-ENG-006
 → TCM-ENG-007 + TCM-ENG-008
 → TCM-SEC-001 + TCM-DATA-001
-→ TCM-PILOT-001
+→ TCM-PILOT-001 controlled pilot hardening
 → TCM-QA-001
 → TCM-AI-001 evaluation decision
 ```
