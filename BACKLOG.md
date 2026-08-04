@@ -7,6 +7,7 @@
 | REC-001 至 REC-007 | P0 | Completed | 项目恢复、Git 基线与私有 GitHub |
 | MAP-PMO-002 | P0 | Completed | 已统一 Roadmap、Dashboard、Backlog，PR #1 已转 Ready |
 | MAP-PROD-001 | P0 | Baseline Established | Founder 医生/患者/运营三方需求已形成追踪矩阵与安全语义校准 |
+| MAP-BIZ-001 | P0 | Founder Review Ready | 商业计划书 V1.0 已形成；等待 Founder 确认融资口径、首发市场与合伙人治理原则 |
 | MAP-GOV-008 | P0 | Completed | 健康知识公地与共同大脑宪章 Draft Baseline |
 | TCM-ENG-001 | P0 | Under Review | 仓库治理与开发基线 |
 | TCM-ENG-002 | P0 | Under Review | 可运行 Alpha 骨架、工作台和测试 |
