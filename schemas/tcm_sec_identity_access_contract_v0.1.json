@@ -2,6 +2,8 @@
   "contract_id": "TCM-SEC-001",
   "schema_version": "0.1.0",
   "status": "security_architecture_candidate",
+  "implementation_status": "synthetic_prototype_under_review",
+  "runtime_module": "map_tcm.identity.IdentityAccessService",
   "synthetic_only": true,
   "production_identity_ready": false,
   "client_supplied_role_is_authoritative": false,
@@ -137,7 +139,28 @@
     "admin_cannot_read_clinical_content_by_default",
     "client_role_claim_cannot_elevate_privilege",
     "delegated_agent_cannot_consent_or_sign",
-    "revoked_session_is_denied"
+    "revoked_session_is_denied",
+    "wrong_recipient_binding_is_denied",
+    "consent_field_scope_expansion_is_denied",
+    "revoked_consent_denies_new_access",
+    "recent_step_up_is_required_for_signing",
+    "record_state_is_checked_before_signing"
+  ],
+  "prototype_guarantees": [
+    "invitation_plaintext_token_is_never_persisted",
+    "invitation_acceptance_creates_identity_pending_subject",
+    "verification_and_active_credential_are_separate_gates",
+    "patient_acceptance_creates_scoped_relationship_and_consent",
+    "authorization_uses_server_side_subject_role",
+    "authorization_allow_and_deny_decisions_are_audited"
+  ],
+  "remaining_production_gates": [
+    "external_identity_provider",
+    "real_credential_verification_provider",
+    "secure_cookie_and_csrf_transport",
+    "server_side_session_rotation_and_key_management",
+    "clinical_api_session_integration",
+    "deployment_backup_and_incident_response_review"
   ],
   "real_data_gate": "deny_until_production_identity_security_privacy_and_compliance_approval"
 }

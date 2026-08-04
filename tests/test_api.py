@@ -37,6 +37,15 @@ class ApiTest(unittest.TestCase):
         self.assertEqual("ok", payload["status"])
         self.assertEqual("synthetic_only", payload["data_mode"])
 
+    def test_security_overview_exposes_no_identity_or_token_material(self) -> None:
+        status, payload = self.request("GET", "/api/v1/security")
+        self.assertEqual(200, status)
+        self.assertEqual("synthetic_security_prototype", payload["status"])
+        self.assertFalse(payload["production_identity_ready"])
+        serialized = json.dumps(payload, ensure_ascii=False).lower()
+        self.assertNotIn("token_hash", serialized)
+        self.assertNotIn("recipient_binding", serialized)
+
     def test_overview_contains_only_synthetic_demo(self) -> None:
         status, payload = self.request("GET", "/api/v1/overview")
         self.assertEqual(200, status)

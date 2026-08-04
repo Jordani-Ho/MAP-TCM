@@ -8,6 +8,7 @@ from typing import Any, Callable, Iterable
 from urllib.parse import unquote
 
 from .errors import DomainError
+from .identity import IdentityAccessService
 from .knowledge import KnowledgeService
 from .service import ClinicalService
 from .store import SQLiteStore
@@ -21,6 +22,7 @@ class MapApplication:
         self.store = SQLiteStore(database_path)
         self.store.initialize()
         self.service = ClinicalService(self.store)
+        self.security = IdentityAccessService(self.store)
         self.knowledge = KnowledgeService(self.store)
         self.service.seed_synthetic_demo()
         self.static_root = Path(__file__).with_name("static")
@@ -43,6 +45,8 @@ class MapApplication:
                 return self._json(start_response, 200, self.store.overview())
             if method == "GET" and path == "/api/v1/knowledge":
                 return self._json(start_response, 200, self.knowledge.overview())
+            if method == "GET" and path == "/api/v1/security":
+                return self._json(start_response, 200, self.security.overview())
             if method == "POST" and path == "/api/v1/knowledge/contributions":
                 payload = self._payload(environ)
                 contributor_id = self._required(payload, "contributor_id")

@@ -18,6 +18,9 @@ class IdentityAccessContractTest(unittest.TestCase):
         self.assertTrue(self.contract["synthetic_only"])
         self.assertFalse(self.contract["production_identity_ready"])
         self.assertFalse(self.contract["client_supplied_role_is_authoritative"])
+        self.assertEqual(
+            "synthetic_prototype_under_review", self.contract["implementation_status"]
+        )
 
     def test_invitation_is_one_time_bound_and_audited(self) -> None:
         invitation = self.contract["invitation"]
@@ -84,7 +87,23 @@ class IdentityAccessContractTest(unittest.TestCase):
                 "client_role_claim_cannot_elevate_privilege",
                 "delegated_agent_cannot_consent_or_sign",
                 "revoked_session_is_denied",
+                "wrong_recipient_binding_is_denied",
+                "consent_field_scope_expansion_is_denied",
+                "revoked_consent_denies_new_access",
+                "recent_step_up_is_required_for_signing",
             }.issubset(requirements)
+        )
+
+    def test_prototype_keeps_production_identity_and_transport_gated(self) -> None:
+        gates = set(self.contract["remaining_production_gates"])
+        self.assertTrue(
+            {
+                "external_identity_provider",
+                "real_credential_verification_provider",
+                "secure_cookie_and_csrf_transport",
+                "clinical_api_session_integration",
+                "deployment_backup_and_incident_response_review",
+            }.issubset(gates)
         )
 
 

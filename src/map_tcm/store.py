@@ -74,6 +74,108 @@ CREATE TABLE IF NOT EXISTS assessments (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS security_subjects (
+    id TEXT PRIMARY KEY,
+    display_code TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL CHECK (
+        role IN (
+            'patient', 'verified_doctor', 'care_executor', 'clinic_admin',
+            'founder_operator', 'knowledge_steward', 'delegated_agent'
+        )
+    ),
+    account_status TEXT NOT NULL CHECK (
+        account_status IN ('identity_pending', 'active', 'suspended', 'rejected')
+    ),
+    verification_status TEXT NOT NULL CHECK (
+        verification_status IN ('pending', 'verified', 'rejected')
+    ),
+    credential_status TEXT NOT NULL CHECK (
+        credential_status IN ('not_applicable', 'pending', 'active', 'expired', 'suspended')
+    ),
+    is_synthetic INTEGER NOT NULL CHECK (is_synthetic = 1),
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS security_sessions (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES security_subjects(id),
+    status TEXT NOT NULL CHECK (status IN ('active', 'revoked', 'expired')),
+    authenticated_at TEXT NOT NULL,
+    step_up_at TEXT,
+    expires_at TEXT NOT NULL,
+    revoked_at TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS security_invitations (
+    id TEXT PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    expected_role TEXT NOT NULL CHECK (
+        expected_role IN (
+            'patient', 'verified_doctor', 'care_executor', 'clinic_admin',
+            'founder_operator', 'knowledge_steward', 'delegated_agent'
+        )
+    ),
+    inviter_subject_id TEXT NOT NULL REFERENCES security_subjects(id),
+    accepted_subject_id TEXT REFERENCES security_subjects(id),
+    intended_recipient_binding TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    issued_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    maximum_uses INTEGER NOT NULL CHECK (maximum_uses = 1),
+    use_count INTEGER NOT NULL DEFAULT 0 CHECK (use_count BETWEEN 0 AND maximum_uses),
+    status TEXT NOT NULL CHECK (
+        status IN (
+            'issued', 'accepted', 'identity_pending', 'active',
+            'expired', 'revoked', 'rejected', 'suspended'
+        )
+    )
+);
+
+CREATE TABLE IF NOT EXISTS security_invitation_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invitation_id TEXT NOT NULL REFERENCES security_invitations(id),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK (
+        to_state IN (
+            'issued', 'accepted', 'identity_pending', 'active',
+            'expired', 'revoked', 'rejected', 'suspended'
+        )
+    ),
+    actor_id TEXT NOT NULL,
+    occurred_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS care_relationships (
+    id TEXT PRIMARY KEY,
+    patient_subject_id TEXT NOT NULL REFERENCES security_subjects(id),
+    practitioner_subject_id TEXT NOT NULL REFERENCES security_subjects(id),
+    status TEXT NOT NULL CHECK (status IN ('pending', 'active', 'ended', 'revoked')),
+    purpose TEXT NOT NULL,
+    data_categories_json TEXT NOT NULL,
+    effective_at TEXT,
+    expires_at TEXT,
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    CHECK (patient_subject_id <> practitioner_subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS security_consents (
+    id TEXT PRIMARY KEY,
+    relationship_id TEXT NOT NULL REFERENCES care_relationships(id),
+    patient_subject_id TEXT NOT NULL REFERENCES security_subjects(id),
+    purpose TEXT NOT NULL,
+    data_categories_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('active', 'revoked', 'expired')),
+    effective_at TEXT NOT NULL,
+    expires_at TEXT,
+    revoked_at TEXT,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS knowledge_contributions (
     id TEXT PRIMARY KEY,
     subject_code TEXT NOT NULL,
@@ -194,6 +296,18 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_reviews_claim
 CREATE INDEX IF NOT EXISTS idx_consensus_claim
     ON consensus_snapshots(claim_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_events(object_type, object_id);
+CREATE INDEX IF NOT EXISTS idx_security_sessions_subject
+    ON security_sessions(subject_id, status);
+CREATE INDEX IF NOT EXISTS idx_security_invitations_hash
+    ON security_invitations(token_hash);
+CREATE INDEX IF NOT EXISTS idx_security_invitation_events
+    ON security_invitation_events(invitation_id, id);
+CREATE INDEX IF NOT EXISTS idx_care_relationship_patient
+    ON care_relationships(patient_subject_id, status);
+CREATE INDEX IF NOT EXISTS idx_care_relationship_practitioner
+    ON care_relationships(practitioner_subject_id, status);
+CREATE INDEX IF NOT EXISTS idx_security_consents_relationship
+    ON security_consents(relationship_id, status);
 """
 
 

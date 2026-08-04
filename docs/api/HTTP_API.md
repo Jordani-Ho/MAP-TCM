@@ -6,6 +6,7 @@ All payloads are JSON. The server binds to localhost by default.
 | --- | --- | --- |
 | GET | `/health` | Liveness and safety mode |
 | GET | `/api/v1/overview` | Synthetic demo encounter and audit overview |
+| GET | `/api/v1/security` | Non-identifying counts for the synthetic security prototype |
 | GET | `/api/v1/knowledge` | Synthetic knowledge contributions, claims, reviews, and snapshots |
 | POST | `/api/v1/knowledge/contributions` | Create a synthetic private contribution draft |
 | POST | `/api/v1/knowledge/contributions/{id}/consent` | Record contributor-controlled consent |
@@ -36,3 +37,9 @@ The API is intentionally narrow. It demonstrates contract and workflow enforceme
 - Withdrawal never deletes history; it appends withdrawal and retraction events.
 
 These endpoints are an engineering contract for synthetic tests. They do not authorize real patient contributions, public knowledge access, or medical decision automation.
+
+## Synthetic security prototype
+
+`GET /api/v1/security` returns only prototype status and aggregate counts. It never returns subject identifiers, invitation recipient bindings, token hashes, sessions or consent scope.
+
+Invitation issuance, token acceptance, verification, relationship acceptance, consent change and object authorization currently exist as an internal Python service contract with automated negative tests. They are intentionally not exposed as HTTP write endpoints. The existing encounter write routes remain synthetic demonstrations and still accept `actor_role`; they must be replaced by server-side session context before any controlled real-data or clinical integration review.
