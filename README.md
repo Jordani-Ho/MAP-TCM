@@ -53,3 +53,4 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 - [TCM-CLIN-001 合成病例](docs/clinical/TCM_CLIN_001_SYNTHETIC_CASE.md)
 - [历史医家学术研究助手政策](docs/governance/HISTORICAL_MEDICAL_SCHOLAR_AI_POLICY.md)
 - [合成知识公地状态机 ADR](docs/architecture/ADR-002-knowledge-commons-state-machine.md)
+- [分布式双域共同大脑 ADR](docs/architecture/ADR-003-federated-dual-domain-knowledge.md)
