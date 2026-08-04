@@ -1,6 +1,6 @@
 # TCM Copilot V8.0 Canonical Engineering Backlog
 
-版本：0.3
+版本：0.4
 状态：Active
 更新日期：2026-08-03
 
@@ -19,7 +19,7 @@
 | TCM-ENG-007 | Pending | 医生审核后的患者摘要 | 只引用已签署且授权内容；确定性模板先行 |
 | TCM-ENG-008 | Pending | 患者每日最小记录体验 | 少量变化驱动问题；不形成填写负担；紧急信息人工升级 |
 | TCM-PILOT-001 | Synthetic Review Ready | 中国医生/患者合成评审门户 | 中文移动端、千问/豆包提示词、合成病例、匿名反馈和本地 JSON 导出已实现；邀请登录与签署待后续安全门禁 |
-| TCM-SEC-001 | Pending | 身份、角色与会话威胁模型 | 医生身份、照护关系、最小权限、会话、审计和滥用测试 |
+| TCM-SEC-001 | Architecture Baseline | 身份、邀请、角色与会话威胁模型 | 0.1 文档与机器可读合同已建立；待实现服务端身份、关系授权、会话与负向集成测试 |
 | TCM-DATA-001 | Pending | 迁移、导出、备份与恢复 | 版本化迁移；最小导出；恢复演练；无静默丢失 |
 | TCM-QA-001 | Pending | V8 合成病例端到端验收 | 建档至摘要闭环；安全负向测试；医生可用性评审 |
 
@@ -28,6 +28,7 @@
 | ID | 状态 | 任务 | 解除条件 |
 | --- | --- | --- | --- |
 | MAP-PMO-002 | Completed | 统一 Roadmap、Dashboard 与 Backlog；审查 PR #1 | 文档、测试、PR 审查完成 |
+| MAP-PROD-001 | Baseline Established | Founder 医生/患者/运营三方需求与追踪矩阵 | 已映射 V8/V9/V10；临床字段仍由合作医生确认 |
 | MAP-GOV-008 | Completed | 健康知识公地与共同大脑宪章 | Founder Approved / Distributed Architecture Baseline 0.2 |
 | MAP-KNOW-002 | Under Review | 合成贡献、争议、评审、共识与撤回状态机 | 代码、API、测试与 ADR 已提交，等待合并 |
 | MAP-KNOW-003 | Architecture Baseline | 分布式双域共同大脑协议 | 使用多个合成节点验证联邦信封、同步、撤回依赖、医生统计门禁与个人趋势 |
@@ -44,11 +45,12 @@ MAP-PMO-002
 → MAP-GOV-008 + MAP-KNOW-002
 → MAP-KNOW-003 architecture baseline
 → TCM-PILOT-001 synthetic review + TCM-CLIN-001 + TCM-UX-001
+→ MAP-PROD-001 requirements baseline
 → TCM-ENG-003
 → TCM-ENG-004
 → TCM-ENG-005 + TCM-ENG-006
 → TCM-ENG-007 + TCM-ENG-008
-→ TCM-SEC-001 + TCM-DATA-001
+→ TCM-SEC-001 implementation + TCM-DATA-001
 → TCM-PILOT-001 controlled pilot hardening
 → TCM-QA-001
 → TCM-AI-001 evaluation decision

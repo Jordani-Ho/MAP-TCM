@@ -47,7 +47,9 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\dev\run.ps1
 
 - [V8/V9/V10 Roadmap](ROADMAP.md)
 - [Founder Dashboard](FOUNDER_DASHBOARD.md)
+- [Founder 三方需求基线与追踪矩阵](docs/product/MAP-PROD-001-founder-requirements-baseline.md)
 - [V8 完整工程 Backlog](docs/product/v8/V8_ENGINEERING_BACKLOG.md)
+- [身份、邀请、角色、会话与威胁模型](docs/security/TCM-SEC-001-identity-role-session-threat-model.md)
 - [中国合作医生临时客户端方案](docs/product/v8/CHINA_DOCTOR_PILOT.md)
 - [医患并行合成评审运行手册](docs/pilot/TCM_PILOT_001_REVIEW_RUNBOOK.md)
 - [合成评审门户源码](portal/README.md)
