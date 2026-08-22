@@ -1,0 +1,93 @@
+{
+  "contract_id": "MAP-DEV-013",
+  "schema_version": "0.1.0",
+  "status": "engineering_pre_review_complete",
+  "synthetic_only": true,
+  "production_ready": false,
+  "clinical_approval": false,
+  "ai_required": false,
+  "purpose": "Represent sourced preventive-health observations through time without turning chronology into diagnosis or causation.",
+  "runtime": {
+    "source_table": "patient_vault_entries",
+    "timeline_table": "patient_health_timeline_events",
+    "context_table": "health_context_observations",
+    "append_only": true,
+    "every_write_audited": true,
+    "same_vault_source_required": true
+  },
+  "observation_kinds": {
+    "person": [
+      "diet",
+      "sleep",
+      "elimination",
+      "emotion_stress",
+      "activity",
+      "clothing_thermal",
+      "body_sensation"
+    ],
+    "environment": [
+      "climate",
+      "season",
+      "solar_term",
+      "location_context",
+      "housing_environment"
+    ]
+  },
+  "observation_states": [
+    "observed",
+    "unknown",
+    "not_collected",
+    "not_applicable",
+    "declined"
+  ],
+  "provenance": {
+    "source_roles": ["patient", "doctor", "file", "device", "system"],
+    "confirmation_states": [
+      "patient_reported",
+      "doctor_confirmed",
+      "external_document",
+      "device_recorded",
+      "system_recorded"
+    ],
+    "role_confirmation_pair_must_match": true,
+    "source_entry_and_content_hash_returned": true
+  },
+  "time_context": {
+    "timezone_aware_iso_required": true,
+    "start_must_not_follow_end": true,
+    "calendar_context_is_sourced_not_silently_inferred": true,
+    "system_solar_term_requires": ["label", "calculation_method", "calendar_version"]
+  },
+  "location_context": {
+    "timeline_granularities": ["none", "climate_region", "city_level"],
+    "precise_location_may_remain_in_private_source_layer": true,
+    "precise_location_copied_into_timeline": false,
+    "forbidden_timeline_keys": [
+      "exact_address",
+      "street_address",
+      "latitude",
+      "longitude",
+      "gps",
+      "coordinates",
+      "postal_code"
+    ]
+  },
+  "semantic_boundaries": {
+    "timeline_order_implies_causation": false,
+    "clinical_authority": false,
+    "diagnosis_allowed": false,
+    "prescription_allowed": false,
+    "ai_can_fill_unknown_values": false,
+    "deterministic_window_read_only": true
+  },
+  "open_production_gates": [
+    "real doctor review of observation vocabulary and display priority",
+    "production patient authentication and object authorization",
+    "approved almanac solar-term climate and geocoding data sources",
+    "encrypted precise-location and media storage with per-vault KMS keys",
+    "offline synchronization and duplicate/conflict governance",
+    "retention export correction withdrawal and disaster recovery",
+    "legal privacy security and clinical approvals",
+    "real patient and real clinical data authorization"
+  ]
+}

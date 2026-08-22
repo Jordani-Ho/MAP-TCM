@@ -1,0 +1,56 @@
+{
+  "contract_id": "MAP-AI-004",
+  "version": "0.1.0",
+  "status": "synthetic_engineering_baseline",
+  "synthetic_only": true,
+  "production_ready": false,
+  "default_action": "deny_before_retrieval_or_model",
+  "allowed_scopes": [
+    "tcm_classics_theory_history_and_sources",
+    "health_lifestyle_environment_and_prevention",
+    "current_users_private_health_and_learning",
+    "authorized_current_care_task",
+    "physician_confirmed_actions_feedback_and_follow_up",
+    "map_product_privacy_consent_export_and_safe_use",
+    "risk_escalation_to_human_or_emergency_service"
+  ],
+  "request_limits": {
+    "max_input_characters": 6000,
+    "max_agent_turns": 4,
+    "max_estimated_tool_calls": 4,
+    "max_agent_hops": 0,
+    "external_network": false,
+    "code_execution": false,
+    "software_installation": false
+  },
+  "tool_allowlist": {
+    "physician_apprentice": [
+      "search_personalized_knowledge",
+      "search_current_patient_session"
+    ],
+    "patient_tutor": [
+      "search_personalized_knowledge",
+      "search_patient_private_memory"
+    ]
+  },
+  "reason_codes": [
+    "agent_request_out_of_scope",
+    "agent_request_ambiguous_scope",
+    "agent_prompt_too_large",
+    "agent_instruction_attack",
+    "agent_resource_abuse",
+    "agent_tool_not_allowed",
+    "agent_budget_exceeded",
+    "agent_recursion_blocked",
+    "clinical_authority_required"
+  ],
+  "production_gates": [
+    "persistent per-user and per-node rate limits",
+    "provider cost and token circuit breaker",
+    "concurrency queue and cancellation",
+    "duplicate request hashing and replay policy",
+    "file count size type archive-depth and malware gates",
+    "model invocation audit without private prompt content",
+    "operator pause switch and incident response"
+  ]
+}

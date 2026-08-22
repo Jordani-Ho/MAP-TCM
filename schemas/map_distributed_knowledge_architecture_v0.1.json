@@ -1,0 +1,124 @@
+{
+  "contract_id": "MAP-KNOW-003",
+  "schema_version": "0.1.0",
+  "status": "architecture_candidate",
+  "synthetic_only": true,
+  "clinical_authority": false,
+  "semantic_subjects": {
+    "knowledge_system": "epistemic_and_collaboration_subject",
+    "patient": "data_consent_and_rights_subject",
+    "licensed_physician": "clinical_decision_and_accountability_subject"
+  },
+  "knowledge_domains": [
+    {
+      "domain_id": "immutable_foundation",
+      "objects": [
+        "classic_source_artifact",
+        "classic_source_version",
+        "patient_baseline_fact_event",
+        "consent_event",
+        "authorization_event",
+        "correction_event"
+      ],
+      "mutation_policy": "append_only_no_overwrite",
+      "current_view_policy": "rebuild_projection_from_events",
+      "public_by_default": false
+    },
+    {
+      "domain_id": "evolving_learning",
+      "objects": [
+        "condition_observation",
+        "intervention_exposure",
+        "outcome_event",
+        "adverse_event",
+        "practitioner_experience_claim",
+        "practitioner_performance_aggregate",
+        "personal_health_trend",
+        "case_pattern",
+        "counterclaim",
+        "consensus_snapshot"
+      ],
+      "mutation_policy": "append_events_and_versioned_snapshots",
+      "current_view_policy": "recompute_with_provenance_and_uncertainty",
+      "public_by_default": false
+    }
+  ],
+  "node_types": [
+    {
+      "node_type": "personal_health_agent_node",
+      "primary_subject": "patient",
+      "personalized": true,
+      "default_shared_payload": "consented_deidentified_knowledge_object"
+    },
+    {
+      "node_type": "doctor_agent_node",
+      "primary_subject": "licensed_physician",
+      "personalized": true,
+      "default_shared_payload": "authorized_scoped_experience_or_review"
+    },
+    {
+      "node_type": "care_institution_node",
+      "primary_subject": "accountable_care_organization",
+      "personalized": false,
+      "default_shared_payload": "privacy_thresholded_validation_or_aggregate"
+    },
+    {
+      "node_type": "commons_node",
+      "primary_subject": "governed_community",
+      "personalized": false,
+      "default_shared_payload": "source_claim_counterclaim_review_or_consensus"
+    }
+  ],
+  "federation_envelope_required": [
+    "object_id",
+    "object_type",
+    "origin_node_id",
+    "author_or_accountable_subject",
+    "created_at",
+    "version",
+    "content_hash",
+    "evidence_tag",
+    "consent_or_license_reference",
+    "access_level",
+    "applicability_scope",
+    "withdrawal_rule",
+    "audit_proof"
+  ],
+  "raw_identifiable_record_exchange_default": "deny",
+  "doctor_performance_metric_requirements": [
+    "outcome_definition",
+    "condition_and_population_scope",
+    "sample_size",
+    "inclusion_exclusion_rules",
+    "case_mix",
+    "follow_up_window",
+    "loss_to_follow_up_and_missingness",
+    "actual_intervention_exposure",
+    "co_interventions_and_adherence",
+    "adverse_events_failures_and_referrals",
+    "statistical_method_and_uncertainty",
+    "data_version_and_generated_at",
+    "consent_privacy_threshold_and_conflicts"
+  ],
+  "doctor_performance_prohibited_uses": [
+    "public_leaderboard_by_default",
+    "treatment_guarantee",
+    "automatic_triage",
+    "punitive_evaluation_without_governance"
+  ],
+  "personal_trend_requirements": [
+    "longitudinal_self_baseline",
+    "source_separation",
+    "coverage_window",
+    "missingness",
+    "uncertainty",
+    "no_automatic_causality_or_clinical_conclusion"
+  ],
+  "decision_boundaries": [
+    "ai_must_not_diagnose_independently",
+    "ai_must_not_prescribe_independently",
+    "ai_must_not_sign_clinical_records",
+    "patient_agent_must_not_grant_consent_for_patient",
+    "community_consensus_must_not_auto_apply_to_an_individual"
+  ]
+}

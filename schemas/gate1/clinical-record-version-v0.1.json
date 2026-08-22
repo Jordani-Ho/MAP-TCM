@@ -1,0 +1,72 @@
+{
+  "contract_id": "MAP-DEV-008",
+  "version": "0.1.2",
+  "status": "synthetic_implementation_human_review_pending",
+  "synthetic_only": true,
+  "production_ready": false,
+  "entities": {
+    "ClinicalRecordVersion": {
+      "statuses": ["draft", "doctor_reviewed", "signed"],
+      "transitions": ["draft->doctor_reviewed", "doctor_reviewed->signed"],
+      "append_only": true,
+      "signed_immutable": true,
+      "revision_link": "supersedes_version_id"
+    },
+    "ClinicalFieldValue": {
+      "immutable": true,
+      "required_provenance": [
+        "field_id",
+        "value_hash",
+        "source_type",
+        "source_ref",
+        "source_anchor_json",
+        "author_id"
+      ],
+      "correction_link": "supersedes_field_value_id"
+    },
+    "ResponsibilitySnapshot": {
+      "immutable": true,
+      "raw_source_content_persisted": false,
+      "manifest_fields": [
+        "field_value_id",
+        "field_id",
+        "value_hash",
+        "source_type",
+        "source_ref",
+        "source_anchor",
+        "supersedes_field_value_id"
+      ]
+    },
+    "WithdrawalEvent": {
+      "append_only": true,
+      "does_not_mutate_signed_version": true
+    }
+  },
+  "http_routes": {
+    "review": "POST /api/v1/encounters/{id}/review",
+    "sign": "POST /api/v1/encounters/{id}/sign",
+    "withdraw": "POST /api/v1/encounters/{id}/withdraw",
+    "revise": "POST /api/v1/encounters/{id}/revise"
+  },
+  "global_invariants": [
+    "all clinical HTTP writes require server session authorization",
+    "client actor_id and actor_role are never clinical authority",
+    "signed versions cannot be updated or deleted",
+    "field values cannot be updated or deleted",
+    "withdrawal appends an event and leaves the signed version unchanged",
+    "revision creates a new draft linked to the signed prior version",
+    "responsibility snapshots contain hashes and anchors, not raw source content",
+    "all source references use synthetic:// in this implementation"
+  ],
+  "open_production_gates": [
+    "production identity provider and doctor credential verification",
+    "encrypted vault and KMS",
+    "backup recovery retention and deletion policy",
+    "legal privacy and clinical approval"
+  ],
+  "implemented_followups": {
+    "explicit patient-record to security-subject key": "MAP-DEV-009",
+    "vault source object and source anchor foundation": "MAP-DEV-009",
+    "single authorization-write-outbox transaction": "MAP-DEV-010"
+  }
+}

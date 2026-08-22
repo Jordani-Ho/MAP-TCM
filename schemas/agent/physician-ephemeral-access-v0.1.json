@@ -1,0 +1,62 @@
+{
+  "contract_id": "MAP-AI-003",
+  "version": "0.1.0",
+  "status": "synthetic_runtime_candidate",
+  "synthetic_only": true,
+  "production_ready": false,
+  "purpose": "Allow one verified physician's bound apprentice to temporarily read one current patient's scoped vault during a care task without copying patient content into physician permanent knowledge.",
+  "runtime_tables": {
+    "access_session": "physician_patient_access_sessions",
+    "responsibility_snapshot": "physician_access_responsibility_snapshots"
+  },
+  "open_preconditions": [
+    "active server-resolved verified doctor session",
+    "active physician credential",
+    "physician apprentice node teacher_subject_code equals logged-in doctor display_code",
+    "active care relationship with the selected patient",
+    "active system authorization basis covering exact purpose and data categories",
+    "active vault owned by the selected patient",
+    "requested duration is between 1 and 240 minutes"
+  ],
+  "read_rules": [
+    "The access session binds exactly one doctor, one physician agent, one patient and one vault.",
+    "Each read rechecks access session, doctor login session, care relationship and authorization-basis status and expiry.",
+    "Only entries in the approved data categories are returned.",
+    "The query and returned patient content are not written to the access session or audit log.",
+    "Closing, expiry, login revocation, relationship end or authorization revocation prevents subsequent reads."
+  ],
+  "retention": {
+    "temporary_patient_copy": false,
+    "physician_permanent_knowledge_copy": false,
+    "audit": {
+      "actor_time_purpose_scope": true,
+      "query_or_patient_content": false
+    },
+    "responsibility_snapshot": {
+      "source_entry_ids": true,
+      "source_versions": true,
+      "source_hashes": true,
+      "source_categories": true,
+      "ai_draft_reference": true,
+      "final_record_reference": true,
+      "raw_patient_content": false
+    }
+  },
+  "forbidden": [
+    "browse unrelated patients",
+    "reuse an access session for another patient",
+    "persist raw patient content into physician knowledge",
+    "expand scope from a client role or model request",
+    "continue reading after close, expiry or revocation",
+    "treat AI output as a signed diagnosis or prescription"
+  ],
+  "production_gates": [
+    "production identity and credential verification",
+    "server sessions and object authorization",
+    "encrypted ephemeral processing workspace",
+    "model-provider no-training and retention controls",
+    "automatic cache and trace redaction/deletion",
+    "responsibility snapshot retention approval",
+    "human technical, clinical, legal and privacy approval"
+  ]
+}

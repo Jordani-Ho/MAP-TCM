@@ -1,0 +1,74 @@
+{
+  "contract_id": "MAP-DEV-009",
+  "version": "0.1.1",
+  "status": "synthetic_implementation_human_review_pending",
+  "synthetic_only": true,
+  "production_ready": false,
+  "entities": {
+    "PatientRecordSubjectBinding": {
+      "primary_key": "patient_id",
+      "security_key": "patient_subject_id",
+      "immutable": true,
+      "display_code_is_not_authority": true
+    },
+    "Vault": {
+      "types": ["patient_private", "doctor_private"],
+      "owner_key": "security_subjects.id",
+      "identifier_grants_access": false,
+      "raw_key_material_allowed": false,
+      "synthetic_key_reference": null
+    },
+    "SourceObject": {
+      "immutable": true,
+      "types": [
+        "text",
+        "audio",
+        "video",
+        "image",
+        "document",
+        "structured_form",
+        "external_reference"
+      ],
+      "required": [
+        "owner_vault_id",
+        "object_key",
+        "object_version",
+        "content_hash",
+        "created_by_subject_id"
+      ],
+      "storage_reference_public_url_allowed": false,
+      "raw_content_in_source_object_row": false
+    },
+    "SourceAnchor": {
+      "immutable": true,
+      "types": ["text_range", "time_range", "page_bbox", "object_version"],
+      "fixed_source_object_version": true,
+      "transform_chain_versioned": true
+    },
+    "ClinicalFieldSourceLink": {
+      "immutable": true,
+      "statuses": ["anchored", "source_pending"],
+      "anchored_requires_source_object_and_anchor": true,
+      "revision_reuses_prior_immutable_anchor": true
+    }
+  },
+  "global_invariants": [
+    "a legacy patient record maps to exactly one verified patient security subject",
+    "matching display codes never substitute for the explicit patient-subject binding",
+    "a patient Vault is owned by the bound patient security subject",
+    "every new session-authorized clinical field is anchored to an immutable source object version",
+    "source objects store hashes and opaque synthetic references, not raw file bytes",
+    "all current runtime records and references remain synthetic only"
+  ],
+  "open_production_gates": [
+    "production identity provider and account recovery",
+    "encrypted object storage and KMS-backed per-vault key reference",
+    "malware scanning and safe media processing",
+    "backup recovery retention export and deletion policy",
+    "model-provider retention and regional processing controls",
+    "legal privacy security and clinical approval"
+  ],
+  "implemented_followups": {
+    "single authorization-write-outbox transaction": "MAP-DEV-010"
+  }
+}

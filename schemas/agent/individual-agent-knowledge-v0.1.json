@@ -1,0 +1,43 @@
+{
+  "contract_id": "MAP-AI-001",
+  "version": "0.3.0",
+  "status": "synthetic_engineering_candidate",
+  "synthetic_only": true,
+  "production_ready": false,
+  "node_types": {
+    "physician_apprentice": {
+      "human_owner": "verified_physician",
+      "purpose": "learn_and_present_one_physicians_evolving_reasoning_framework",
+      "clinical_authority": false
+    },
+    "patient_tutor": {
+      "human_owner": "patient",
+      "purpose": "teach_confirmed_health_literacy_and_support_daily_self_observation",
+      "clinical_authority": false,
+      "private_memory_contract": "schemas/agent/patient-private-vault-v0.1.json"
+    }
+  },
+  "knowledge_domains": [
+    "classical_source",
+    "physician_framework",
+    "physician_experience",
+    "patient_learning",
+    "patient_observation",
+    "commons_reference"
+  ],
+  "source_layers": ["original", "commentary", "physician_view", "ai_summary"],
+  "access_levels": ["private", "care_relationship", "teaching_approved", "commons"],
+  "invariants": [
+    "one physician apprentice node binds to exactly one human teacher",
+    "classical originals are immutable and commentary never overwrites originals",
+    "physician frameworks evolve by append and supersede events",
+    "patient tutor can only retrieve teaching_approved or commons knowledge",
+    "patient tutor private-memory retrieval is limited to the vault owned by the same patient subject code",
+    "physician apprentice patient access requires a current MAP-AI-003 ephemeral consultation session and never becomes physician permanent knowledge",
+    "patient identity, clinical records and media references remain source records separate from AI-derived knowledge",
+    "AI drafts never become physician-confirmed knowledge without human action",
+    "neither node diagnoses, prescribes, changes medication, signs, or consents",
+    "all repository fixtures use SYN- identifiers",
+    "every persistent write creates an audit event"
+  ]
+}

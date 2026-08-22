@@ -1,0 +1,166 @@
+{
+  "contract_id": "TCM-SEC-001",
+  "schema_version": "0.1.0",
+  "status": "security_architecture_candidate",
+  "implementation_status": "synthetic_prototype_under_review",
+  "runtime_module": "map_tcm.identity.IdentityAccessService",
+  "synthetic_only": true,
+  "production_identity_ready": false,
+  "client_supplied_role_is_authoritative": false,
+  "principals": [
+    "patient",
+    "verified_doctor",
+    "care_executor",
+    "clinic_admin",
+    "founder_operator",
+    "knowledge_steward",
+    "delegated_agent"
+  ],
+  "invitation": {
+    "states": [
+      "issued",
+      "accepted",
+      "identity_pending",
+      "active",
+      "expired",
+      "revoked",
+      "rejected",
+      "suspended"
+    ],
+    "required_fields": [
+      "invitation_id",
+      "token_hash",
+      "expected_role",
+      "inviter_subject_id",
+      "intended_recipient_binding",
+      "purpose",
+      "issued_at",
+      "expires_at",
+      "maximum_uses",
+      "revocation_status",
+      "audit_reference"
+    ],
+    "plaintext_token_persistence": "deny",
+    "default_maximum_uses": 1
+  },
+  "doctor_signing_requirements": [
+    "authenticated_server_side_subject",
+    "verified_doctor_role",
+    "active_license_or_credential_status",
+    "active_care_relationship",
+    "patient_consent_covers_purpose_and_fields",
+    "record_state_allows_signing",
+    "recent_step_up_authentication",
+    "audit_event"
+  ],
+  "care_relationship": {
+    "patient_acceptance_required": true,
+    "doctor_invitation_is_patient_consent": false,
+    "cross_doctor_authorization_default": "deny",
+    "required_scope": [
+      "purpose",
+      "data_categories",
+      "allowed_members",
+      "effective_at",
+      "expires_at",
+      "revocation_rule"
+    ]
+  },
+  "capability_denials": {
+    "patient": [
+      "clinical_judgment.sign",
+      "other_patient_record.read"
+    ],
+    "care_executor": [
+      "clinical_judgment.sign",
+      "prescription.create_or_modify",
+      "full_clinical_record.read_by_default"
+    ],
+    "clinic_admin": [
+      "clinical_content.read_by_default",
+      "clinical_judgment.modify"
+    ],
+    "founder_operator": [
+      "clinical_content.read_by_default",
+      "clinical_judgment.sign"
+    ],
+    "delegated_agent": [
+      "consent.grant_or_revoke",
+      "clinical_record.sign",
+      "invitation.issue",
+      "role_or_verification.change",
+      "autonomous_diagnosis_or_prescription"
+    ]
+  },
+  "authorization_decision_order": [
+    "authenticated_subject",
+    "active_account_and_verification",
+    "role_capability",
+    "object_relationship",
+    "consent_purpose_and_field_scope",
+    "object_state",
+    "step_up_for_high_risk_action",
+    "audit"
+  ],
+  "high_risk_capabilities": [
+    "clinical_record.sign",
+    "consent.change",
+    "care_relationship.change",
+    "invitation.issue",
+    "bulk_export.request",
+    "role_or_verification.change"
+  ],
+  "session_candidate": {
+    "transport": "secure_httponly_samesite_cookie",
+    "browser_token_storage": "deny_local_storage",
+    "csrf_protection_required": true,
+    "idle_timeout_minutes": 30,
+    "absolute_timeout_hours": 12,
+    "step_up_recency_minutes": 10,
+    "server_side_revocation_required": true
+  },
+  "audit_required_events": [
+    "authentication",
+    "session_lifecycle",
+    "invitation_lifecycle",
+    "identity_and_credential_verification",
+    "care_relationship_lifecycle",
+    "consent_lifecycle",
+    "clinical_read_write_review_sign_withdraw",
+    "export_share_bulk_query",
+    "permission_change_and_break_glass",
+    "agent_tool_call_denial_and_safety_escalation"
+  ],
+  "negative_test_requirements": [
+    "invitation_reuse_is_denied",
+    "expired_or_revoked_invitation_is_denied",
+    "identity_pending_doctor_cannot_sign",
+    "doctor_cannot_read_unrelated_patient",
+    "admin_cannot_read_clinical_content_by_default",
+    "client_role_claim_cannot_elevate_privilege",
+    "delegated_agent_cannot_consent_or_sign",
+    "revoked_session_is_denied",
+    "wrong_recipient_binding_is_denied",
+    "consent_field_scope_expansion_is_denied",
+    "revoked_consent_denies_new_access",
+    "recent_step_up_is_required_for_signing",
+    "record_state_is_checked_before_signing"
+  ],
+  "prototype_guarantees": [
+    "invitation_plaintext_token_is_never_persisted",
+    "invitation_acceptance_creates_identity_pending_subject",
+    "verification_and_active_credential_are_separate_gates",
+    "patient_acceptance_creates_scoped_relationship_and_consent",
+    "authorization_uses_server_side_subject_role",
+    "authorization_allow_and_deny_decisions_are_audited"
+  ],
+  "remaining_production_gates": [
+    "external_identity_provider",
+    "real_credential_verification_provider",
+    "secure_cookie_and_csrf_transport",
+    "server_side_session_rotation_and_key_management",
+    "clinical_api_session_integration",
+    "deployment_backup_and_incident_response_review"
+  ],
+  "real_data_gate": "deny_until_production_identity_security_privacy_and_compliance_approval"
+}

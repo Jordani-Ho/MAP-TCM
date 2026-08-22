@@ -1,0 +1,65 @@
+{
+  "contract_id": "MAP-DEV-010",
+  "version": "0.1.0",
+  "status": "synthetic_implementation_human_review_pending",
+  "synthetic_only": true,
+  "production_ready": false,
+  "transaction_boundary": {
+    "same_sqlite_transaction": [
+      "server authorization decision",
+      "allowed authorization evidence snapshot",
+      "clinical domain write",
+      "clinical write to evidence link",
+      "pending outbox event"
+    ],
+    "any_write_failure_rolls_back_all": true,
+    "denied_decision_commits_denial_audit_without_clinical_write": true
+  },
+  "entities": {
+    "ClinicalAuthorizationEvidence": {
+      "immutable": true,
+      "allowed_only": true,
+      "required": [
+        "session_id",
+        "subject_id",
+        "server_role",
+        "capability",
+        "patient_subject_id",
+        "purpose",
+        "data_categories",
+        "object_id",
+        "relationship_id",
+        "consent_id",
+        "evidence_hash"
+      ]
+    },
+    "ClinicalWriteEvidenceLink": {
+      "immutable": true,
+      "one_evidence_per_write": true
+    },
+    "ClinicalOutboxEvent": {
+      "immutable": true,
+      "initial_status": "pending",
+      "one_event_per_evidence": true,
+      "payload_contains_raw_clinical_content": false,
+      "payload_hash_required": true
+    }
+  },
+  "global_invariants": [
+    "client role claims never become authorization evidence",
+    "relationship and consent ids are captured from the allowed database decision",
+    "outbox insertion failure rolls back the clinical write and allowed evidence",
+    "denied requests produce no allowed evidence or outbox event",
+    "outbox payload contains identifiers and version references but no patient narrative",
+    "all current runtime data remains synthetic only"
+  ],
+  "open_production_gates": [
+    "production database transaction isolation and concurrency verification",
+    "idempotency keys and duplicate request handling",
+    "outbox dispatcher lease retry and append-only delivery attempts",
+    "dead-letter review and replay governance",
+    "production observability without patient content",
+    "security load and failure-injection review",
+    "legal privacy and clinical approval"
+  ]
+}
