@@ -1,0 +1,92 @@
+{
+  "contract_id": "MAP-AI-002",
+  "version": "0.1.0",
+  "status": "synthetic_runtime_candidate",
+  "synthetic_only": true,
+  "production_ready": false,
+  "definition": "A patient-owned private health memory containing identity context, original health records, longitudinal events and separately labelled derived knowledge.",
+  "layers": {
+    "source_foundation": {
+      "runtime_table": "patient_vault_entries",
+      "purpose": "Preserve identity, birth context, medical records, reports, media references and observations with source and version.",
+      "categories": [
+        "identity_profile", "birth_context", "family_history", "medical_record",
+        "test_report", "prescription", "medication_history", "allergy_history",
+        "procedure_history", "image", "video", "audio", "patient_observation",
+        "lifestyle", "environment", "doctor_guidance", "outcome"
+      ],
+      "identity_profile_fields": [
+        "full_name", "sex_or_gender_record", "birth_datetime", "birth_place",
+        "residence_history", "family_relationship_context"
+      ],
+      "rules": [
+        "Original content is immutable after append.",
+        "Correction creates a new version and preserves the old version.",
+        "Media is represented by an opaque storage reference and content hash, never a public URL.",
+        "Every entry carries source type, source reference, occurred_at, creator and audit event."
+      ]
+    },
+    "health_timeline": {
+      "runtime_table": "patient_health_timeline_events",
+      "purpose": "Organize patient change through time without collapsing provenance.",
+      "event_kinds": [
+        "identity_baseline", "clinical_encounter", "observation", "investigation",
+        "intervention", "outcome", "lifestyle", "environment"
+      ],
+      "confirmation_states": [
+        "patient_reported", "doctor_confirmed", "external_document",
+        "device_recorded", "system_recorded"
+      ],
+      "rules": [
+        "Every event references an original entry in the same patient vault.",
+        "Patient statements, doctor confirmations, external documents and device records remain distinguishable.",
+        "Timeline order does not imply causation."
+      ]
+    },
+    "derived_knowledge": {
+      "runtime_table": "patient_derived_knowledge",
+      "purpose": "Store summaries, trends, reminders, questions and learning notes without turning them into original facts.",
+      "knowledge_kinds": ["summary", "trend", "reminder", "question", "learning_note"],
+      "states": [
+        "ai_draft", "patient_confirmed", "doctor_confirmed", "superseded", "withdrawn"
+      ],
+      "rules": [
+        "Every derived item cites one or more source entries from the same vault.",
+        "AI-authored content always starts as ai_draft.",
+        "Derived knowledge has clinical_authority=false even when reviewed.",
+        "A new interpretation supersedes rather than deletes the previous version."
+      ]
+    }
+  },
+  "agent_access": {
+    "patient_tutor": "May retrieve only the vault whose patient_subject_code equals the agent node owner, subject to purpose and provider controls.",
+    "physician_apprentice": "Has no permanent or default patient-vault access; may read one current patient through MAP-AI-003 session-scoped ephemeral access.",
+    "physician_ephemeral_access_contract": "schemas/agent/physician-ephemeral-access-v0.1.json",
+    "cross_patient": "Denied.",
+    "commons_export": "Denied by default; requires separate consent, de-identification and contribution workflow."
+  },
+  "global_invariants": [
+    "The patient is the owner and rights subject of the private vault.",
+    "Patient identity and original health records are part of the patient knowledge base, not external attachments without provenance.",
+    "Clinical records and source media are not copied into the common health knowledge body by default.",
+    "The patient tutor is a controlled reader and derived-knowledge author, not the owner of the vault.",
+    "Physician consultation access is temporary, patient-specific and never copies raw patient content into physician permanent knowledge.",
+    "No AI output becomes a doctor diagnosis, prescription or signed record.",
+    "Gate 0 uses SYN- subjects and synthetic:// sources only.",
+    "Every persistent write is audited."
+  ],
+  "production_gates": [
+    "server-resolved identity and object authorization",
+    "patient-controlled consent and relationship scope",
+    "encryption at rest and in transit with approved KMS",
+    "encrypted object storage for reports, images, video and audio",
+    "backup, recovery, retention and deletion policy",
+    "provider routing decision before private data is sent to any model",
+    "legal, privacy, clinical and human technical partner approval"
+  ],
+  "synthetic_example": {
+    "patient_subject_code": "SYN-PAT-001",
+    "source_ref": "synthetic://document/visit-001",
+    "contains_real_patient_data": false
+  }
+}

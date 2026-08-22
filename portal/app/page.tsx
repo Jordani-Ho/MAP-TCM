@@ -1,5 +1,5 @@
-import ReviewPortal from "./review-portal";
+import GateOneConversationPrototype from "./prototype/prototype-client";
 
 export default function Home() {
-  return <ReviewPortal />;
+  return <GateOneConversationPrototype />;
 }

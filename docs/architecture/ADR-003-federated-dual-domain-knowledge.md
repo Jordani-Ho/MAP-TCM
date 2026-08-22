@@ -1,8 +1,10 @@
-# ADR-003：分布式双域共同大脑
+# ADR-003：分布式双域共同大脑（已替代）
 
-- Status: Accepted Architecture Baseline / Not Implemented
+- Status: Superseded by ADR-004
 - Date: 2026-08-03
 - Governing charter: MAP-008 v0.2
+
+> 本文件保留用于决策追溯。2026-08-21 起，`commons_node` 与人类健康总知识体不再属于现行架构；节点内不可覆盖/追加式原则仍保留。现行决策见 [ADR-004：独立认知节点与点对点知识交换](ADR-004-independent-cognitive-nodes.md)。
 
 ## Context
 

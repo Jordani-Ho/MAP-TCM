@@ -243,6 +243,10 @@ export default function ReviewPortal() {
               <span><b>1+</b> 位患者体验者</span>
               <span><b>0</b> 条真实病历</span>
             </div>
+            <a className="prototype-link" href="/prototype">
+              <span><b>Gate 0 客户端骨架</b><small>用合成身份走查医患协作、授权与随访闭环</small></span>
+              <strong>查看可点击原型 →</strong>
+            </a>
           </div>
 
           <div className="role-grid" aria-label="选择评审入口">

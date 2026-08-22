@@ -1,0 +1,51 @@
+{
+  "contract_id": "MAP-DEV-011",
+  "schema_version": "0.1.0",
+  "status": "engineering_pre_review_complete",
+  "synthetic_only": true,
+  "production_ready": false,
+  "clinical_approval": false,
+  "ai_required": false,
+  "field_registry": {
+    "source_contract": "TCM-CLIN-001@0.1.0",
+    "accepted_status": "candidate_for_doctor_review",
+    "immutable_versions": true,
+    "same_version_hash_conflict": "reject",
+    "formal_ai_source_allowed": false,
+    "unknown_states": ["unknown", "not_collected", "not_applicable", "declined"],
+    "candidate_readiness_is_clinical_approval": false
+  },
+  "care_loop": {
+    "states": [
+      "initial_record_signed",
+      "intervention_plan_signed",
+      "execution_recorded",
+      "patient_feedback_recorded",
+      "follow_up_linked_to_previous_signed_record",
+      "doctor_comparison_recorded",
+      "follow_up_record_signed"
+    ],
+    "intervention_plan_versioned": true,
+    "execution_events_append_only": true,
+    "feedback_events_append_only": true,
+    "follow_up_requires_previous_signed_record_reference": true,
+    "patient_facts_projected_without_ai": true,
+    "doctor_comparison_requires_verified_doctor": true
+  },
+  "formal_record_boundaries": {
+    "doctor_judgment_sources": ["doctor"],
+    "ai_content_location": "separate_ai_draft_only",
+    "signed_record_immutable": true,
+    "patient_raw_content_in_outbox": false
+  },
+  "open_production_gates": [
+    "real doctor review and approval of TCM-CLIN-001",
+    "production patient authentication and self-write authorization",
+    "production database concurrency and idempotency",
+    "encrypted media storage and per-vault KMS keys",
+    "outbox dispatcher delivery attempts retries and dead-letter governance",
+    "backup restore and disaster recovery drill",
+    "legal privacy and clinical approvals",
+    "real patient and real clinical data authorization"
+  ]
+}

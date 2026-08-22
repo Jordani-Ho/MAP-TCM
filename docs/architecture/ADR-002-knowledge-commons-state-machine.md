@@ -1,11 +1,13 @@
-# ADR-002: Synthetic knowledge commons state machine
+# ADR-002: Synthetic knowledge state machine (migration required)
 
-- Status: Accepted for Alpha / Under Review
+- Status: Migration Required under ADR-004
 - Date: 2026-08-03
+
+> The append-only event and provenance mechanisms remain useful, but the shared-commons and global-consensus semantics are superseded. The implementation must be scoped to one owning cognitive node and use local snapshots; cross-node exchange is governed by ADR-004 knowledge envelopes.
 
 ## Context
 
-MAP-008 defines a shared health knowledge commons while preserving personal data sovereignty, source integrity, disagreement, and clinical responsibility. MAP-KNOW-002 needs a runnable contract that proves these ideas without accepting real patient data or allowing AI to declare consensus.
+MAP-008 v0.2 originally defined a shared health knowledge commons. MAP-008 v0.3 now defines independent cognitive nodes with no common brain or global knowledge store. MAP-KNOW-002 remains a synthetic contract for append-only provenance, disagreement and withdrawal, but must no longer imply central contribution or community-wide consensus.
 
 ## Decision
 

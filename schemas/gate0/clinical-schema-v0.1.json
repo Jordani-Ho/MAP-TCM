@@ -1,0 +1,536 @@
+{
+  "contract_id": "MAP-DEV-003",
+  "schema_version": "0.1.0",
+  "status": "gate0_engineering_candidate",
+  "language": "zh-CN",
+  "synthetic_only": true,
+  "production_ready": false,
+  "clinical_approval": false,
+  "subject_code_prefix": "SYN-",
+  "governing_documents": [
+    "docs/MAP-003-clinical-record-protocol.md",
+    "docs/MAP-004-identity-consent-authorization.md",
+    "docs/MAP-005-medical-memory-and-evidence.md",
+    "docs/MAP-006-alpha-system-architecture.md",
+    "docs/MAP-007-clinical-workflows.md",
+    "docs/clinical/TCM_CLIN_001_FIELD_DICTIONARY.md",
+    "docs/security/TCM-SEC-001-identity-role-session-threat-model.md"
+  ],
+  "compatible_contracts": {
+    "clinical_field_registry": "schemas/tcm_clinical_fields_v0.1.json",
+    "identity_access": "schemas/tcm_sec_identity_access_contract_v0.1.json",
+    "runtime_tables": [
+      "patients",
+      "consents",
+      "encounters",
+      "observations",
+      "assessments",
+      "audit_events"
+    ],
+    "compatibility_policy": "Gate 0 is additive. Existing synthetic runtime columns and state values remain valid; no destructive migration is authorized."
+  },
+  "identifiers": {
+    "format": "opaque_string",
+    "synthetic_subject_rule": "All repository fixtures use SYN- display codes and synthetic_only=true.",
+    "forbidden_repository_identifiers": [
+      "real_name",
+      "phone_number",
+      "government_id",
+      "exact_address",
+      "real_patient_media"
+    ]
+  },
+  "enums": {
+    "vault_type": [
+      "patient_private",
+      "doctor_private"
+    ],
+    "record_kind": [
+      "patient_fact",
+      "doctor_observation",
+      "doctor_judgment",
+      "external_evidence",
+      "ai_draft"
+    ],
+    "source_role": [
+      "patient",
+      "doctor",
+      "file",
+      "system",
+      "external",
+      "ai"
+    ],
+    "unknown_state": [
+      "unknown",
+      "not_collected",
+      "not_applicable",
+      "declined"
+    ],
+    "review_status": [
+      "draft",
+      "doctor_reviewed",
+      "signed",
+      "withdrawn"
+    ],
+    "consent_status": [
+      "active",
+      "revoked",
+      "expired"
+    ],
+    "care_relationship_status": [
+      "pending",
+      "active",
+      "ended",
+      "revoked"
+    ],
+    "source_anchor_type": [
+      "text_range",
+      "audio_time_range",
+      "video_time_range",
+      "document_page_bbox",
+      "image_bbox",
+      "object_version"
+    ]
+  },
+  "value_envelope": {
+    "required": [
+      "field_value_id",
+      "encounter_id",
+      "field_id",
+      "record_kind",
+      "value_or_unknown",
+      "source_role",
+      "author_subject_id",
+      "recorded_at",
+      "review_status",
+      "version",
+      "source_anchor_ids"
+    ],
+    "properties": {
+      "field_value_id": "opaque_id",
+      "encounter_id": "Encounter.id",
+      "field_id": "field_id from schemas/tcm_clinical_fields_v0.1.json",
+      "record_kind": "enums.record_kind",
+      "value_or_unknown": "either a typed value or one explicit enums.unknown_state; blank is not equivalent to normal",
+      "source_role": "enums.source_role",
+      "author_subject_id": "server-resolved subject; AI author must never be represented as doctor",
+      "recorded_at": "RFC3339 UTC timestamp",
+      "review_status": "enums.review_status",
+      "version": "positive integer",
+      "supersedes_field_value_id": "nullable prior version reference",
+      "source_anchor_ids": "array of SourceAnchor.id; empty only when explicitly marked source_pending",
+      "source_pending": "boolean",
+      "confidence": "nullable number from 0 through 1 for derived content only",
+      "consent_grant_id": "ConsentGrant.id authorizing current purpose",
+      "integrity_hash": "sha256 of canonical content and immutable metadata"
+    },
+    "rules": [
+      "A field value is append-only after signed status.",
+      "AI output uses record_kind=ai_draft and source_role=ai.",
+      "doctor_judgment requires source_role=doctor and a server-resolved verified doctor subject.",
+      "Unknown, not collected, not applicable and declined are first-class values.",
+      "AI must not infer a normal value from absence."
+    ]
+  },
+  "entity_contracts": {
+    "Vault": {
+      "purpose": "Logical personal control domain. Gate 0 defines references and policy boundaries; it does not claim production cryptographic isolation is implemented.",
+      "required": [
+        "vault_id",
+        "vault_type",
+        "owner_subject_id",
+        "synthetic_only",
+        "status",
+        "created_at"
+      ],
+      "properties": {
+        "vault_id": "opaque_id",
+        "vault_type": "patient_private or doctor_private",
+        "owner_subject_id": "security_subjects.id",
+        "synthetic_only": "must be true in repository and current runtime",
+        "key_reference": "nullable production KMS reference; never raw key material",
+        "status": "active, suspended or closed",
+        "created_at": "RFC3339"
+      },
+      "invariants": [
+        "A patient vault owns original patient facts and media references.",
+        "A doctor vault owns private methods, templates and notes, but not an unbounded copy of a patient vault.",
+        "Vault identifiers do not grant access; authorization is evaluated for every object."
+      ]
+    },
+    "CareRelationship": {
+      "compatible_runtime_table": "care_relationships",
+      "required": [
+        "relationship_id",
+        "patient_subject_id",
+        "doctor_subject_id",
+        "purpose",
+        "data_categories",
+        "status",
+        "effective_at",
+        "created_at"
+      ],
+      "properties": {
+        "relationship_id": "opaque_id",
+        "patient_subject_id": "verified patient subject",
+        "doctor_subject_id": "verified doctor subject",
+        "purpose": "non-empty purpose code",
+        "data_categories": "non-empty allow-list",
+        "status": "enums.care_relationship_status",
+        "effective_at": "nullable until patient acceptance",
+        "expires_at": "nullable RFC3339",
+        "created_at": "RFC3339"
+      },
+      "invariants": [
+        "Doctor invitation does not activate the relationship.",
+        "Patient acceptance is required.",
+        "Relationships are independent for each doctor-patient pair."
+      ]
+    },
+    "ConsentGrant": {
+      "compatible_runtime_tables": [
+        "consents",
+        "security_consents"
+      ],
+      "required": [
+        "consent_grant_id",
+        "patient_subject_id",
+        "relationship_id",
+        "recipient_subject_id",
+        "purpose",
+        "data_categories",
+        "resource_object_ids",
+        "effective_at",
+        "status",
+        "version"
+      ],
+      "properties": {
+        "consent_grant_id": "opaque_id",
+        "patient_subject_id": "grantor and data subject",
+        "relationship_id": "active CareRelationship.id",
+        "recipient_subject_id": "doctor or explicitly approved care executor",
+        "purpose": "exact purpose used in authorization decision",
+        "data_categories": "field/category allow-list",
+        "resource_object_ids": "optional object-level allow-list; empty means category scope only",
+        "effective_at": "RFC3339",
+        "expires_at": "nullable RFC3339",
+        "revoked_at": "nullable RFC3339",
+        "status": "enums.consent_status",
+        "version": "positive integer",
+        "supersedes_consent_grant_id": "nullable prior grant reference"
+      },
+      "invariants": [
+        "Consent is not inferred from invitation, account creation or relationship request.",
+        "Scope expansion creates a new grant version and requires patient action.",
+        "Revocation denies new access immediately and is preserved as an event."
+      ]
+    },
+    "Encounter": {
+      "compatible_runtime_table": "encounters",
+      "required": [
+        "encounter_id",
+        "patient_subject_id",
+        "doctor_subject_id",
+        "care_relationship_id",
+        "consent_grant_id",
+        "encounter_type",
+        "occurred_at",
+        "status",
+        "current_version"
+      ],
+      "properties": {
+        "encounter_id": "opaque_id",
+        "patient_subject_id": "security subject; maps to legacy patients record during compatibility period",
+        "doctor_subject_id": "nullable until doctor action; required by doctor_reviewed",
+        "care_relationship_id": "active CareRelationship.id",
+        "consent_grant_id": "active ConsentGrant.id for encounter creation purpose",
+        "encounter_type": "initial, follow_up, check_in or review",
+        "occurred_at": "RFC3339",
+        "status": "draft, doctor_reviewed, signed or withdrawn",
+        "current_version": "positive integer",
+        "synthetic_only": "must be true in Gate 0"
+      }
+    },
+    "ClinicalRecordVersion": {
+      "required": [
+        "record_version_id",
+        "encounter_id",
+        "version",
+        "status",
+        "field_value_ids",
+        "created_by_subject_id",
+        "created_at",
+        "integrity_hash"
+      ],
+      "properties": {
+        "record_version_id": "opaque_id",
+        "encounter_id": "Encounter.id",
+        "version": "positive integer unique within encounter",
+        "status": "enums.review_status",
+        "field_value_ids": "array of value_envelope field_value_id",
+        "created_by_subject_id": "server-resolved subject",
+        "created_at": "RFC3339",
+        "reviewed_by_doctor_subject_id": "required for doctor_reviewed and signed",
+        "reviewed_at": "required for doctor_reviewed and signed",
+        "signed_by_doctor_subject_id": "required only for signed",
+        "signed_at": "required only for signed",
+        "step_up_session_id": "required only for signed",
+        "supersedes_record_version_id": "nullable previous version",
+        "withdrawal_reason": "required only for withdrawn",
+        "integrity_hash": "sha256 canonical record manifest"
+      },
+      "invariants": [
+        "Signed versions are immutable.",
+        "Correction creates a new version that references the signed version.",
+        "Withdrawal changes validity through an event and does not delete history.",
+        "AI cannot review or sign."
+      ]
+    },
+    "SourceObject": {
+      "required": [
+        "source_object_id",
+        "owner_vault_id",
+        "source_type",
+        "object_version",
+        "content_hash",
+        "created_by_subject_id",
+        "created_at"
+      ],
+      "properties": {
+        "source_object_id": "opaque_id",
+        "owner_vault_id": "Vault.id",
+        "source_type": "text, audio, video, image, document, structured_form or external_reference",
+        "object_version": "positive integer",
+        "storage_reference": "nullable opaque storage reference; never a public URL",
+        "content_hash": "sha256",
+        "created_by_subject_id": "server-resolved subject",
+        "created_at": "RFC3339",
+        "consent_grant_id": "required for cross-vault access",
+        "synthetic_only": "must be true in repository"
+      }
+    },
+    "SourceAnchor": {
+      "required": [
+        "source_anchor_id",
+        "source_object_id",
+        "source_object_version",
+        "anchor_type",
+        "anchor",
+        "created_at"
+      ],
+      "properties": {
+        "source_anchor_id": "opaque_id",
+        "source_object_id": "SourceObject.id",
+        "source_object_version": "positive integer",
+        "anchor_type": "enums.source_anchor_type",
+        "anchor": "type-specific JSON: char range, time range, page+bbox or object version",
+        "extracted_text": "nullable synthetic text for review",
+        "confidence": "nullable 0..1",
+        "transform_chain": "array of versioned extraction operations",
+        "created_at": "RFC3339"
+      },
+      "invariants": [
+        "An anchor always refers to an immutable source version.",
+        "A derived value cannot silently move its anchor to a newer source version."
+      ]
+    },
+    "AiDraftVersion": {
+      "required": [
+        "ai_draft_version_id",
+        "encounter_id",
+        "task_type",
+        "input_source_anchor_ids",
+        "prompt_version",
+        "provider",
+        "model",
+        "output_schema_version",
+        "draft_payload",
+        "status",
+        "created_at"
+      ],
+      "properties": {
+        "ai_draft_version_id": "opaque_id",
+        "encounter_id": "Encounter.id",
+        "task_type": "transcription, extraction, clinical_record_draft, gap_check or follow_up_comparison",
+        "input_source_anchor_ids": "non-empty SourceAnchor.id array",
+        "prompt_version": "immutable prompt identifier",
+        "provider": "adapter identifier",
+        "model": "provider model identifier",
+        "output_schema_version": "versioned structured output schema",
+        "draft_payload": "must not be written to doctor judgment tables",
+        "status": "generated, doctor_review_pending, accepted_in_part, rejected or superseded",
+        "created_at": "RFC3339",
+        "consent_grant_id": "authorization used for the task",
+        "input_hash": "hash of canonical input manifest",
+        "output_hash": "hash of canonical draft"
+      },
+      "invariants": [
+        "AI draft is stored separately from patient fact, doctor observation and doctor judgment.",
+        "AI draft cannot transition to signed.",
+        "Accepting content creates a new human-authored field value and retains a review decision."
+      ]
+    },
+    "AiReviewDecision": {
+      "required": [
+        "review_decision_id",
+        "ai_draft_version_id",
+        "json_pointer",
+        "reviewer_doctor_subject_id",
+        "action",
+        "occurred_at"
+      ],
+      "properties": {
+        "review_decision_id": "opaque_id",
+        "ai_draft_version_id": "AiDraftVersion.id",
+        "json_pointer": "field path inside immutable AI output",
+        "reviewer_doctor_subject_id": "verified doctor",
+        "action": "accept, modify or reject",
+        "accepted_field_value_id": "nullable human-authored value envelope id",
+        "before_hash": "AI field hash",
+        "after_hash": "nullable accepted/modified field hash",
+        "reason": "nullable review reason",
+        "occurred_at": "RFC3339"
+      }
+    },
+    "ResponsibilitySnapshot": {
+      "required": [
+        "snapshot_id",
+        "signed_record_version_id",
+        "manifest",
+        "content_hash",
+        "created_at"
+      ],
+      "properties": {
+        "snapshot_id": "opaque_id",
+        "signed_record_version_id": "ClinicalRecordVersion.id with signed status",
+        "manifest": "minimum source object versions and field values relied on by the doctor",
+        "content_hash": "sha256 canonical manifest",
+        "retention_class": "pending legal and privacy decision",
+        "doctor_vault_reference": "nullable reference to minimum responsibility copy, never full patient vault",
+        "created_at": "RFC3339"
+      }
+    },
+    "AuditEvent": {
+      "compatible_runtime_table": "audit_events",
+      "required": [
+        "audit_event_id",
+        "event_type",
+        "actor_subject_id",
+        "server_role",
+        "capability",
+        "object_type",
+        "object_id",
+        "purpose",
+        "decision",
+        "reason_code",
+        "occurred_at",
+        "request_id"
+      ],
+      "properties": {
+        "audit_event_id": "append-only id",
+        "event_type": "versioned event code",
+        "actor_subject_id": "server-resolved subject or system service identity",
+        "server_role": "server-resolved role",
+        "capability": "requested capability",
+        "object_type": "non-secret object type",
+        "object_id": "opaque object id",
+        "purpose": "authorization purpose",
+        "decision": "allowed, denied, succeeded or failed",
+        "reason_code": "machine-readable result",
+        "session_id": "nullable session reference",
+        "occurred_at": "RFC3339",
+        "request_id": "correlation id",
+        "metadata": "no secret, token, credential or unnecessary clinical content",
+        "previous_hash": "future integrity chain field",
+        "event_hash": "future integrity chain field"
+      },
+      "invariants": [
+        "Every persistent write produces an audit event in the same unit of work or a transactionally coupled outbox.",
+        "Allowed and denied sensitive reads are audited.",
+        "Audit events are not deleted when consent is revoked or a record is withdrawn."
+      ]
+    }
+  },
+  "state_machines": {
+    "clinical_record": {
+      "states": [
+        "draft",
+        "doctor_reviewed",
+        "signed",
+        "withdrawn"
+      ],
+      "allowed_transitions": [
+        "draft->doctor_reviewed",
+        "doctor_reviewed->draft",
+        "doctor_reviewed->signed",
+        "doctor_reviewed->withdrawn",
+        "signed->withdrawn"
+      ],
+      "signed_correction_rule": "Create a new draft version linked by supersedes_record_version_id; never mutate the signed version."
+    },
+    "ai_draft": {
+      "states": [
+        "generated",
+        "doctor_review_pending",
+        "accepted_in_part",
+        "rejected",
+        "superseded"
+      ],
+      "forbidden_states": [
+        "doctor_reviewed",
+        "signed"
+      ]
+    }
+  },
+  "authorization_preconditions": {
+    "encounter_create": [
+      "authenticated active subject",
+      "active care relationship",
+      "active consent covers purpose and requested field categories",
+      "synthetic subject and data in Gate 0",
+      "audit event"
+    ],
+    "clinical_record_sign": [
+      "server role is verified_doctor",
+      "active credential status",
+      "active care relationship",
+      "active consent covers purpose and signed fields",
+      "record state is doctor_reviewed",
+      "recent step-up authentication",
+      "source and unknown checks pass",
+      "audit event"
+    ]
+  },
+  "global_invariants": [
+    "Only synthetic data is allowed in the repository, tests and current runtime.",
+    "Patient original facts belong to the patient private vault; doctor private knowledge belongs to the doctor private vault.",
+    "A care relationship and consent grant authorize references, not ownership transfer or full vault copying.",
+    "Patient fact, doctor observation, doctor judgment, external evidence and AI draft remain distinct record kinds.",
+    "AI cannot consent, accept a relationship, sign, withdraw a doctor record or promote its own draft.",
+    "Signed versions and their source manifest are immutable; correction and withdrawal are additive.",
+    "Every field displayed as sourced can resolve to an immutable source object version and anchor.",
+    "Every persistent write and sensitive authorization decision is audited without secrets or unnecessary clinical text.",
+    "No production identity, KMS or real clinical data readiness is claimed by this contract."
+  ],
+  "synthetic_example": {
+    "patient_display_code": "SYN-PAT-GATE0-001",
+    "doctor_display_code": "SYN-DOC-GATE0-001",
+    "patient_vault_id": "vault_syn_patient_001",
+    "doctor_vault_id": "vault_syn_doctor_001",
+    "care_relationship_id": "rel_syn_001",
+    "consent_grant_id": "consent_syn_001",
+    "encounter_id": "enc_syn_001",
+    "record_version_id": "crv_syn_001_v1",
+    "status": "draft",
+    "contains_real_patient_data": false
+  },
+  "remaining_gates": [
+    "doctor review of TCM-CLIN-001 field dictionary",
+    "production identity provider and credential verification",
+    "secure cookie, CSRF and server-session integration for clinical APIs",
+    "production vault encryption, KMS, backup and recovery design approval",
+    "clinical HTTP writes authorized from server session rather than actor_role",
+    "retention and responsibility snapshot legal/privacy decision",
+    "end-to-end negative authorization and immutable signing tests"
+  ]
+}

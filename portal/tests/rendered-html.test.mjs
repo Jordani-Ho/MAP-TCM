@@ -15,17 +15,28 @@ async function render() {
   );
 }
 
-test("renders the MAP-TCM synthetic review portal", async () => {
+test("root route renders only the Gate 1 conversation client", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /<title>MAP-TCM 合成评审门户<\/title>/i);
-  assert.match(html, /我是合作中医师/);
-  assert.match(html, /我是患者体验者/);
+  assert.match(html, /<title>MAP 治未病 AI 社区<\/title>/i);
+  assert.match(html, /患者健康辅导员（AI）/);
+  assert.match(html, /医师智能体徒弟/);
   assert.match(html, /仅限合成数据/);
-  assert.match(html, /<b>0<\/b>\s*条真实病历/);
+  assert.match(html, /健康事实确认卡/);
+  assert.doesNotMatch(html, /我是合作中医师|我是患者体验者|进入医生评审|进入患者评审/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/);
+});
+
+test("legacy review portal is sealed off from all active routes", async () => {
+  const [home, prototype] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/prototype/page.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.doesNotMatch(home, /review-portal|ReviewPortal/);
+  assert.match(home, /prototype\/prototype-client/);
+  assert.match(prototype, /prototype-client/);
 });
 
 test("ships both prompt packs and keeps hosting state logical", async () => {
@@ -53,4 +64,48 @@ test("client export contract remains synthetic and local-only", async () => {
   assert.match(source, /window\.localStorage/);
   assert.match(source, /downloadJson/);
   assert.doesNotMatch(source, /fetch\([^)]*api\//i);
+});
+
+test("Gate 0 prototype keeps clinical responsibility and data boundaries explicit", async () => {
+  const source = await readFile(new URL("../app/prototype/prototype-client.tsx", import.meta.url), "utf8");
+  assert.match(source, /仅限合成数据/);
+  assert.match(source, /原型不保存|不保存/);
+  assert.match(source, /AI 只起草，医生逐项审阅/);
+  assert.match(source, /签署功能未启用|签署门禁未开放/);
+  assert.match(source, /SYN-PAT-001/);
+  assert.match(source, /SYN-DOC-001/);
+  assert.doesNotMatch(source, /fetch\([^)]*api\//i);
+});
+
+test("doctor prototype mounts one patient temporarily and closes without a copy", async () => {
+  const source = await readFile(new URL("../app/prototype/prototype-client.tsx", import.meta.url), "utf8");
+  assert.match(source, /type ConsultationStatus = "idle" \| "active" \| "closed"/);
+  assert.match(source, /开始接诊并临时挂载资料/);
+  assert.match(source, /无有效照护关系/);
+  assert.match(source, /结束接诊并关闭/);
+  assert.match(source, /患者原文副本<\/dt><dd>0 份/);
+  assert.match(source, /最小责任快照/);
+  assert.doesNotMatch(source, /fetch\([^)]*api\//i);
+});
+
+test("Gate 1 prototype is conversation-first and carries the no-AI care loop as cards", async () => {
+  const source = await readFile(new URL("../app/prototype/prototype-client.tsx", import.meta.url), "utf8");
+  assert.match(source, /当前交流对象/);
+  assert.match(source, /患者健康辅导员（AI）/);
+  assert.match(source, /医师智能体徒弟（AI）/);
+  assert.match(source, /健康事实确认卡/);
+  assert.match(source, /来源锚点/);
+  assert.match(source, /医生确认的行动卡/);
+  assert.match(source, /患者反馈卡/);
+  assert.match(source, /复诊差异卡/);
+  assert.match(source, /上次签署记录/);
+  assert.match(source, /医生审核卡/);
+  assert.match(source, /候选字段缺口/);
+  assert.match(source, /语音/);
+  assert.match(source, /照片/);
+  assert.match(source, /视频/);
+  assert.match(source, /文件/);
+  assert.match(source, /没有调用设备、没有读取内容、没有上传/);
+  assert.doesNotMatch(source, /fetch\([^)]*api\//i);
+  assert.doesNotMatch(source, /localStorage|sessionStorage/);
 });

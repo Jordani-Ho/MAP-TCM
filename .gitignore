@@ -9,6 +9,7 @@ Desktop.ini
 __pycache__/
 *.py[cod]
 .venv/
+*.egg-info/
 .local/
 .coverage
 htmlcov/

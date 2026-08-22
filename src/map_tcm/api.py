@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 from urllib.parse import unquote
 
+from .care_loop import CareLoopService
+from .care_session import SessionAuthorizedCareLoopService
+from .clinical_session import SessionAuthorizedClinicalService
 from .errors import DomainError
 from .identity import IdentityAccessService
 from .knowledge import KnowledgeService
@@ -22,9 +25,23 @@ class MapApplication:
         self.store = SQLiteStore(database_path)
         self.store.initialize()
         self.service = ClinicalService(self.store)
+        contract_path = Path(__file__).resolve().parents[2] / "schemas" / "tcm_clinical_fields_v0.1.json"
+        self.clinical_field_contract = self.service.field_registry.register_contract(contract_path)
+        self.care_loop = CareLoopService(self.store, self.service)
         self.security = IdentityAccessService(self.store)
+        self.authorized_clinical = SessionAuthorizedClinicalService(
+            self.store, self.service, self.security
+        )
+        self.authorized_care_loop = SessionAuthorizedCareLoopService(
+            self.store,
+            self.service,
+            self.care_loop,
+            self.security,
+            self.authorized_clinical,
+        )
         self.knowledge = KnowledgeService(self.store)
         self.service.seed_synthetic_demo()
+        self.synthetic_context = self._seed_synthetic_clinical_context()
         self.static_root = Path(__file__).with_name("static")
 
     def __call__(self, environ: dict[str, Any], start_response: StartResponse) -> Iterable[bytes]:
@@ -47,6 +64,25 @@ class MapApplication:
                 return self._json(start_response, 200, self.knowledge.overview())
             if method == "GET" and path == "/api/v1/security":
                 return self._json(start_response, 200, self.security.overview())
+            if method == "GET" and path == "/api/v1/clinical-fields":
+                return self._json(start_response, 200, self.clinical_field_contract)
+            if method == "GET" and path == "/api/v1/synthetic/context":
+                remote_addr = environ.get("REMOTE_ADDR")
+                if remote_addr not in {None, "", "127.0.0.1", "::1"}:
+                    raise DomainError(
+                        "synthetic_context_local_only",
+                        "合成演示会话只允许从本机工作台获取。",
+                        status=403,
+                    )
+                return self._json(
+                    start_response,
+                    200,
+                    {
+                        "data_mode": "synthetic_only",
+                        "doctor_session_id": self.synthetic_context["doctor_session_id"],
+                        "patient_session_id": self.synthetic_context["patient_session_id"],
+                    },
+                )
             if method == "POST" and path == "/api/v1/knowledge/contributions":
                 payload = self._payload(environ)
                 contributor_id = self._required(payload, "contributor_id")
@@ -134,54 +170,141 @@ class MapApplication:
                 return self._json(start_response, 201, result)
             if method == "POST" and path == "/api/v1/encounters":
                 payload = self._payload(environ)
-                result = self.service.create_encounter(
+                result = self.authorized_clinical.create_encounter(
+                    session_id=self._session_id(environ),
                     patient_id=self._required(payload, "patient_id"),
                     encounter_type=payload.get("encounter_type", "follow_up"),
                     chief_complaint=self._required(payload, "chief_complaint"),
-                    actor_id=payload.get("actor_id", "demo_operator"),
+                    purpose=self._required(payload, "purpose"),
+                    data_categories=self._string_list(payload, "data_categories"),
+                    client_role_claim=payload.get("actor_role"),
                 )
                 return self._json(start_response, 201, result)
 
             observation_match = re.fullmatch(r"/api/v1/encounters/([^/]+)/observations", path)
             if method == "POST" and observation_match:
                 payload = self._payload(environ)
-                result = self.service.add_observation(
+                result = self.authorized_clinical.add_observation(
+                    session_id=self._session_id(environ),
                     encounter_id=observation_match.group(1),
                     category=self._required(payload, "category"),
                     content=self._required(payload, "content"),
                     source=payload.get("source", "patient"),
-                    actor_id=payload.get("actor_id", "demo_operator"),
+                    purpose=self._required(payload, "purpose"),
+                    data_categories=self._string_list(payload, "data_categories"),
+                    client_role_claim=payload.get("actor_role"),
                 )
                 return self._json(start_response, 201, result)
+
+            field_match = re.fullmatch(r"/api/v1/encounters/([^/]+)/fields", path)
+            if method == "POST" and field_match:
+                payload = self._payload(environ)
+                result = self.authorized_clinical.add_structured_field(
+                    session_id=self._session_id(environ),
+                    encounter_id=field_match.group(1),
+                    field_id=self._required(payload, "field_id"),
+                    value=payload.get("value"),
+                    unknown_state=payload.get("unknown_state"),
+                    source_role=self._required(payload, "source_role"),
+                    review_status=payload.get("review_status", "draft"),
+                    purpose=self._required(payload, "purpose"),
+                    data_categories=self._string_list(payload, "data_categories"),
+                    client_role_claim=payload.get("actor_role"),
+                )
+                return self._json(start_response, 201, result)
+
+            readiness_match = re.fullmatch(
+                r"/api/v1/encounters/([^/]+)/candidate-readiness", path
+            )
+            if method == "GET" and readiness_match:
+                return self._json(
+                    start_response,
+                    200,
+                    self.service.candidate_field_readiness(readiness_match.group(1)),
+                )
 
             assessment_match = re.fullmatch(r"/api/v1/encounters/([^/]+)/assessments", path)
             if method == "POST" and assessment_match:
                 payload = self._payload(environ)
-                result = self.service.add_assessment(
+                result = self.authorized_clinical.add_assessment(
+                    session_id=self._session_id(environ),
                     encounter_id=assessment_match.group(1),
                     pattern=self._required(payload, "pattern"),
                     mechanism=self._required(payload, "mechanism"),
                     rationale=self._required(payload, "rationale"),
                     treatment_principle=self._required(payload, "treatment_principle"),
                     prescription_summary=payload.get("prescription_summary", ""),
-                    actor_id=payload.get("actor_id", "demo_doctor"),
-                    actor_role=payload.get("actor_role", "doctor"),
+                    purpose=self._required(payload, "purpose"),
+                    data_categories=self._string_list(payload, "data_categories"),
+                    client_role_claim=payload.get("actor_role"),
                 )
                 return self._json(start_response, 201, result)
 
             transition_match = re.fullmatch(
-                r"/api/v1/encounters/([^/]+)/(review|sign|withdraw)", path
+                r"/api/v1/encounters/([^/]+)/(review|sign|withdraw|revise)", path
             )
             if method == "POST" and transition_match:
                 payload = self._payload(environ)
+                action = transition_match.group(2)
+                if action == "revise":
+                    result = self.authorized_clinical.start_revision(
+                        session_id=self._session_id(environ),
+                        encounter_id=transition_match.group(1),
+                        reason=self._required(payload, "reason"),
+                        purpose=self._required(payload, "purpose"),
+                        data_categories=self._string_list(payload, "data_categories"),
+                        client_role_claim=payload.get("actor_role"),
+                    )
+                    return self._json(start_response, 201, result)
                 targets = {"review": "doctor_reviewed", "sign": "signed", "withdraw": "withdrawn"}
-                result = self.service.transition_encounter(
+                result = self.authorized_clinical.transition_encounter(
+                    session_id=self._session_id(environ),
                     encounter_id=transition_match.group(1),
-                    target_status=targets[transition_match.group(2)],
-                    actor_id=payload.get("actor_id", "demo_doctor"),
-                    actor_role=payload.get("actor_role", "doctor"),
+                    target_status=targets[action],
+                    purpose=self._required(payload, "purpose"),
+                    data_categories=self._string_list(payload, "data_categories"),
+                    client_role_claim=payload.get("actor_role"),
+                    reason=self._required(payload, "reason") if action == "withdraw" else "",
                 )
                 return self._json(start_response, 200, result)
+
+            execution_match = re.fullmatch(
+                r"/api/v1/care-loop/plans/([^/]+)/execution", path
+            )
+            if method == "POST" and execution_match:
+                payload = self._payload(environ)
+                result = self.authorized_care_loop.record_execution(
+                    session_id=self._session_id(environ),
+                    idempotency_key=self._idempotency_key(environ),
+                    plan_version_id=execution_match.group(1),
+                    event_type=self._required(payload, "event_type"),
+                    detail=self._object(payload, "detail"),
+                    occurred_at=payload.get("occurred_at"),
+                )
+                return self._json(
+                    start_response,
+                    200 if result["idempotency_replayed"] else 201,
+                    result,
+                )
+
+            feedback_match = re.fullmatch(
+                r"/api/v1/care-loop/plans/([^/]+)/feedback", path
+            )
+            if method == "POST" and feedback_match:
+                payload = self._payload(environ)
+                result = self.authorized_care_loop.record_feedback(
+                    session_id=self._session_id(environ),
+                    idempotency_key=self._idempotency_key(environ),
+                    plan_version_id=feedback_match.group(1),
+                    response_code=self._required(payload, "response_code"),
+                    adverse_events=self._optional_string_list(payload, "adverse_events"),
+                    narrative=self._required(payload, "narrative"),
+                )
+                return self._json(
+                    start_response,
+                    200 if result["idempotency_replayed"] else 201,
+                    result,
+                )
 
             if method == "GET" and path in {"/", "/index.html", "/app.js", "/styles.css"}:
                 filename = "index.html" if path in {"/", "/index.html"} else path.removeprefix("/")
@@ -206,6 +329,139 @@ class MapApplication:
         if not isinstance(value, str) or not value.strip():
             raise DomainError("missing_field", f"缺少必填字段：{key}")
         return value.strip()
+
+    @staticmethod
+    def _string_list(payload: dict[str, Any], key: str) -> list[str]:
+        value = payload.get(key)
+        if (
+            not isinstance(value, list)
+            or not value
+            or any(not isinstance(item, str) or not item.strip() for item in value)
+        ):
+            raise DomainError("missing_field", f"缺少有效列表字段：{key}")
+        return [item.strip() for item in value]
+
+    @staticmethod
+    def _optional_string_list(payload: dict[str, Any], key: str) -> list[str]:
+        value = payload.get(key, [])
+        if not isinstance(value, list) or any(
+            not isinstance(item, str) or not item.strip() for item in value
+        ):
+            raise DomainError("invalid_field", f"字段必须是文本列表：{key}")
+        return [item.strip() for item in value]
+
+    @staticmethod
+    def _object(payload: dict[str, Any], key: str) -> dict[str, Any]:
+        value = payload.get(key)
+        if not isinstance(value, dict):
+            raise DomainError("invalid_field", f"字段必须是结构化对象：{key}")
+        return value
+
+    @staticmethod
+    def _session_id(environ: dict[str, Any]) -> str:
+        value = environ.get("HTTP_X_MAP_SESSION_ID")
+        if not isinstance(value, str) or not value.strip():
+            raise DomainError(
+                "session_required",
+                "临床写入必须提供服务端会话。",
+                status=403,
+            )
+        return value.strip()
+
+    @staticmethod
+    def _idempotency_key(environ: dict[str, Any]) -> str:
+        value = environ.get("HTTP_IDEMPOTENCY_KEY")
+        if not isinstance(value, str) or not value.strip():
+            raise DomainError(
+                "idempotency_key_required",
+                "患者执行或反馈写入必须提供防重复键。",
+            )
+        return value.strip()
+
+    def _seed_synthetic_clinical_context(self) -> dict[str, str]:
+        purpose = "synthetic_clinical_care"
+        data_categories = [
+            "chief_complaint",
+            "observations",
+            "assessment",
+            "treatment_principle",
+            "prescription",
+        ]
+
+        def ensure_subject(display_code: str, role: str) -> dict[str, Any]:
+            with self.store.connect() as connection:
+                row = connection.execute(
+                    "SELECT * FROM security_subjects WHERE display_code = ?",
+                    (display_code,),
+                ).fetchone()
+            if row is not None:
+                return dict(row)
+            return self.security.create_synthetic_subject(
+                display_code=display_code,
+                role=role,
+                actor_id="system_seed",
+            )
+
+        doctor = ensure_subject("SYN-DEMO-DOCTOR-001", "verified_doctor")
+        patient = ensure_subject("SYN-DEMO-001", "patient")
+        with self.store.connect() as connection:
+            patient_record = connection.execute(
+                "SELECT id FROM patients WHERE display_code = ? AND is_synthetic = 1",
+                (patient["display_code"],),
+            ).fetchone()
+        if patient_record is None:
+            raise DomainError(
+                "synthetic_patient_record_required",
+                "合成患者记录初始化失败。",
+                status=500,
+            )
+        binding = self.service.bind_patient_security_subject(
+            patient_id=patient_record["id"],
+            patient_subject_id=patient["id"],
+            actor_id="system_seed",
+        )
+        doctor_session = self.security.open_synthetic_session(subject_id=doctor["id"])
+        patient_session = self.security.open_synthetic_session(subject_id=patient["id"])
+        self.security.step_up_session(session_id=doctor_session["id"])
+        self.security.step_up_session(session_id=patient_session["id"])
+
+        with self.store.connect() as connection:
+            active = connection.execute(
+                """
+                SELECT cr.id
+                FROM care_relationships cr
+                JOIN security_consents sc ON sc.relationship_id = cr.id
+                WHERE cr.patient_subject_id = ?
+                  AND cr.practitioner_subject_id = ?
+                  AND cr.status = 'active'
+                  AND sc.status = 'active'
+                  AND sc.purpose = ?
+                ORDER BY cr.created_at DESC LIMIT 1
+                """,
+                (patient["id"], doctor["id"], purpose),
+            ).fetchone()
+        if active is None:
+            relationship = self.security.create_care_relationship(
+                doctor_session_id=doctor_session["id"],
+                patient_subject_id=patient["id"],
+                purpose=purpose,
+                data_categories=data_categories,
+                valid_days=365,
+            )
+            self.security.accept_care_relationship(
+                patient_session_id=patient_session["id"],
+                relationship_id=relationship["id"],
+                purpose=purpose,
+                data_categories=data_categories,
+            )
+        return {
+            "doctor_subject_id": doctor["id"],
+            "patient_subject_id": patient["id"],
+            "patient_vault_id": binding["vault_id"],
+            "doctor_session_id": doctor_session["id"],
+            "patient_session_id": patient_session["id"],
+            "purpose": purpose,
+        }
 
     @staticmethod
     def _payload(environ: dict[str, Any]) -> dict[str, Any]:

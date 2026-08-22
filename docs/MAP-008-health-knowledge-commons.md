@@ -1,7 +1,9 @@
-# MAP-008｜健康知识公地与共同大脑宪章
+# MAP-008 v0.2｜健康知识公地与共同大脑宪章（历史版本）
+
+> **状态：Superseded。** 本文件保留用于架构决策追溯，不再代表当前设计。2026-08-21 起，现行宪章为 [MAP-008 v0.3｜独立认知节点与去中心化健康知识社区宪章](MAP-008-independent-cognitive-nodes.md)。现行架构不设共同大脑、人类健康总知识体或中央共识库。
 
 **版本：** 0.2
-**状态：** Founder Approved / Distributed Architecture Baseline
+**状态：** Superseded by MAP-008 v0.3
 **项目：** MAP Health Knowledge Commons
 
 ## 使命

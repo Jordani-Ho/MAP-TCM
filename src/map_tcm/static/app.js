@@ -1,4 +1,14 @@
-const state = { overview: null };
+const state = { overview: null, doctorSessionId: null };
+const clinicalScope = {
+  purpose: "synthetic_clinical_care",
+  data_categories: [
+    "chief_complaint",
+    "observations",
+    "assessment",
+    "treatment_principle",
+    "prescription",
+  ],
+};
 
 const statusLabels = {
   draft: "草稿",
@@ -17,9 +27,13 @@ function escapeHtml(value) {
 }
 
 async function request(path, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (state.doctorSessionId && options.method === "POST") {
+    headers["X-MAP-Session-ID"] = state.doctorSessionId;
+  }
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.message || "操作失败");
@@ -93,17 +107,22 @@ async function act(action) {
 document.querySelector("#refresh").addEventListener("click", refresh);
 document.querySelector("#add-observation").addEventListener("click", () => act((encounter) => request(`/api/v1/encounters/${encounter.id}/observations`, {
   method: "POST",
-  body: JSON.stringify({ category: "随访", content: document.querySelector("#synthetic-note").value, source: "patient", actor_id: "synthetic_patient" }),
+  body: JSON.stringify({ category: "随访", content: document.querySelector("#synthetic-note").value, source: "patient", ...clinicalScope }),
 })));
 document.querySelector("#add-assessment").addEventListener("click", () => act((encounter) => request(`/api/v1/encounters/${encounter.id}/assessments`, {
   method: "POST",
-  body: JSON.stringify({ pattern: "合成证候示例", mechanism: "仅用于验证数据结构", rationale: "根据合成观察形成的医生示例判断", treatment_principle: "演示性治则，不构成医疗建议", prescription_summary: "无真实处方", actor_id: "demo_doctor", actor_role: "doctor" }),
+  body: JSON.stringify({ pattern: "合成证候示例", mechanism: "仅用于验证数据结构", rationale: "根据合成观察形成的医生示例判断", treatment_principle: "演示性治则，不构成医疗建议", prescription_summary: "无真实处方", ...clinicalScope }),
 })));
 document.querySelector("#review-encounter").addEventListener("click", () => act((encounter) => request(`/api/v1/encounters/${encounter.id}/review`, {
-  method: "POST", body: JSON.stringify({ actor_id: "demo_doctor", actor_role: "doctor" }),
+  method: "POST", body: JSON.stringify(clinicalScope),
 })));
 document.querySelector("#sign-encounter").addEventListener("click", () => act((encounter) => request(`/api/v1/encounters/${encounter.id}/sign`, {
-  method: "POST", body: JSON.stringify({ actor_id: "demo_doctor", actor_role: "doctor" }),
+  method: "POST", body: JSON.stringify(clinicalScope),
 })));
 
-refresh().catch((error) => showMessage(error.message, true));
+request("/api/v1/synthetic/context")
+  .then((context) => {
+    state.doctorSessionId = context.doctor_session_id;
+    return refresh();
+  })
+  .catch((error) => showMessage(error.message, true));

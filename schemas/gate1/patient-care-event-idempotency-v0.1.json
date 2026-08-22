@@ -1,0 +1,62 @@
+{
+  "contract_id": "MAP-DEV-012",
+  "schema_version": "0.1.0",
+  "status": "engineering_pre_review_complete",
+  "synthetic_only": true,
+  "production_ready": false,
+  "clinical_approval": false,
+  "ai_required": false,
+  "patient_self_write": {
+    "capability": "care_event.write",
+    "purpose": "self_health_tracking",
+    "subject_constraint": "authenticated_patient_only",
+    "client_actor_claims_trusted": false,
+    "supported_operations": ["execution", "feedback"]
+  },
+  "idempotency": {
+    "required_header": "Idempotency-Key",
+    "minimum_length": 8,
+    "maximum_length": 128,
+    "scope": ["patient_subject_id", "operation_type", "idempotency_key"],
+    "same_key_same_payload": "return_original_minimal_response",
+    "same_key_changed_payload": "reject_conflict",
+    "records_append_only": true
+  },
+  "atomic_write_boundary": [
+    "server_authorization_decision",
+    "immutable_authorization_evidence",
+    "care_event",
+    "evidence_link",
+    "minimal_outbox_event",
+    "idempotency_record"
+  ],
+  "outbox_boundaries": {
+    "patient_narrative_allowed": false,
+    "raw_feedback_allowed": false,
+    "multimedia_content_allowed": false,
+    "identifiers_status_hashes_only": true
+  },
+  "conversation_cards": [
+    "health_fact_confirmation",
+    "doctor_confirmed_action",
+    "patient_feedback",
+    "follow_up_difference",
+    "doctor_review"
+  ],
+  "clinical_boundaries": {
+    "chat_is_clinical_record": false,
+    "ai_can_sign": false,
+    "doctor_review_required": true,
+    "signed_record_immutable": true
+  },
+  "open_production_gates": [
+    "production identity provider and patient authentication",
+    "target database isolation concurrency and idempotency verification",
+    "offline synchronization conflict and replay governance",
+    "encrypted media storage and per-vault KMS keys",
+    "outbox dispatcher retry dead-letter and disaster recovery",
+    "real doctor review of TCM-CLIN-001",
+    "legal privacy security and clinical approvals",
+    "real patient and real clinical data authorization"
+  ]
+}

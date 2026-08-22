@@ -87,19 +87,19 @@ class ClinicalServiceTest(unittest.TestCase):
             treatment_principle="synthetic principle",
             prescription_summary="no prescription",
             actor_id="doctor_001",
-            actor_role="doctor",
+            actor_role="verified_doctor",
         )
         reviewed = self.service.transition_encounter(
             encounter_id=encounter["id"],
             target_status="doctor_reviewed",
             actor_id="doctor_001",
-            actor_role="doctor",
+            actor_role="verified_doctor",
         )
         signed = self.service.transition_encounter(
             encounter_id=encounter["id"],
             target_status="signed",
             actor_id="doctor_001",
-            actor_role="doctor",
+            actor_role="verified_doctor",
         )
         self.assertEqual("doctor_reviewed", reviewed["status"])
         self.assertEqual("signed", signed["status"])
@@ -134,7 +134,7 @@ class ClinicalServiceTest(unittest.TestCase):
                 encounter_id=encounter["id"],
                 target_status="doctor_reviewed",
                 actor_id="doctor_001",
-                actor_role="doctor",
+                actor_role="verified_doctor",
             )
 
     def test_sign_requires_doctor_assessment(self) -> None:
@@ -156,14 +156,14 @@ class ClinicalServiceTest(unittest.TestCase):
             encounter_id=encounter["id"],
             target_status="doctor_reviewed",
             actor_id="doctor_001",
-            actor_role="doctor",
+            actor_role="verified_doctor",
         )
         with self.assertRaisesRegex(DomainError, "医生"):
             self.service.transition_encounter(
                 encounter_id=encounter["id"],
                 target_status="signed",
                 actor_id="doctor_001",
-                actor_role="doctor",
+                actor_role="verified_doctor",
             )
 
 

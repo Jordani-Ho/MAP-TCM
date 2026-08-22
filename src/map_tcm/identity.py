@@ -23,7 +23,12 @@ ROLES = {
 }
 
 CAPABILITIES = {
-    "patient": {"clinical_record.read", "consent.change", "care_relationship.change"},
+    "patient": {
+        "clinical_record.read",
+        "care_event.write",
+        "consent.change",
+        "care_relationship.change",
+    },
     "verified_doctor": {
         "clinical_record.read",
         "clinical_record.write",
@@ -37,6 +42,8 @@ CAPABILITIES = {
     "knowledge_steward": {"knowledge_source.manage", "knowledge_claim.moderate"},
     "delegated_agent": {"knowledge.retrieve"},
 }
+
+PATIENT_SELF_ONLY_CAPABILITIES = {"clinical_record.read", "care_event.write"}
 
 HIGH_RISK_CAPABILITIES = {
     "clinical_record.sign",
@@ -612,84 +619,125 @@ class IdentityAccessService:
         object_id: str = "synthetic_object",
         client_role_claim: str | None = None,
     ) -> dict[str, Any]:
+        with self.store.connect() as connection:
+            decision = self.authorize_in_transaction(
+                connection,
+                session_id=session_id,
+                capability=capability,
+                patient_subject_id=patient_subject_id,
+                purpose=purpose,
+                data_categories=data_categories,
+                object_state=object_state,
+                object_id=object_id,
+                client_role_claim=client_role_claim,
+            )
+        if not decision["allowed"]:
+            raise DomainError(
+                decision["reason"],
+                "服务端授权决策拒绝该操作。",
+                status=403,
+            )
+        return decision
+
+    def authorize_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        session_id: str,
+        capability: str,
+        patient_subject_id: str | None = None,
+        purpose: str | None = None,
+        data_categories: list[str] | None = None,
+        object_state: str | None = None,
+        object_id: str = "synthetic_object",
+        client_role_claim: str | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate and audit authorization on the caller's transaction.
+
+        The method returns denied decisions instead of raising so callers can
+        commit the denial audit without performing a clinical write.
+        """
         fields = set(data_categories or [])
         allowed = False
         reason = "authorization_denied"
         subject_id = "anonymous"
         server_role: str | None = None
-        with self.store.connect() as connection:
-            session = connection.execute(
-                """
-                SELECT s.*, p.role, p.account_status, p.verification_status,
-                       p.credential_status, p.is_synthetic
-                FROM security_sessions s
-                JOIN security_subjects p ON p.id = s.subject_id
-                WHERE s.id = ?
-                """,
-                (session_id,),
-            ).fetchone()
-            if session is None:
-                reason = "session_not_found"
-            else:
-                subject_id = session["subject_id"]
-                server_role = session["role"]
-                reason = self._session_denial_reason(session) or ""
-                if not reason and (
-                    session["account_status"] != "active"
-                    or session["verification_status"] != "verified"
-                ):
-                    reason = "inactive_or_unverified_subject"
-                if not reason and capability not in CAPABILITIES.get(server_role, set()):
-                    reason = "capability_forbidden"
-                if (
-                    not reason
-                    and server_role == "verified_doctor"
-                    and session["credential_status"] != "active"
-                ):
-                    reason = "credential_inactive"
-                if not reason and server_role == "patient":
-                    if capability == "clinical_record.read" and patient_subject_id != subject_id:
-                        reason = "other_patient_record_forbidden"
-                if not reason and server_role in {"verified_doctor", "care_executor"}:
-                    reason = self._relationship_or_consent_denial(
-                        connection,
-                        subject_id=subject_id,
-                        patient_subject_id=patient_subject_id,
-                        purpose=purpose,
-                        fields=fields,
-                    )
-                if not reason and capability == "clinical_record.sign" and object_state != "doctor_reviewed":
-                    reason = "object_state_forbids_signing"
-                if not reason and capability in HIGH_RISK_CAPABILITIES:
-                    reason = self._step_up_denial_reason(session)
-                allowed = not reason
-            self.store.audit(
-                connection,
-                event_type="security.authorization.decision",
-                actor_id=subject_id,
-                object_type="authorization_target",
-                object_id=object_id,
-                metadata={
-                    "allowed": allowed,
-                    "reason": "allowed" if allowed else reason,
-                    "server_role": server_role,
-                    "client_role_claim": client_role_claim,
-                    "client_role_authoritative": False,
-                    "capability": capability,
-                    "patient_subject_id": patient_subject_id,
-                    "purpose": purpose,
-                    "data_categories": sorted(fields),
-                    "session_id": session_id,
-                },
-            )
-        if not allowed:
-            raise DomainError(reason, "服务端授权决策拒绝该操作。", status=403)
+        relationship_id: str | None = None
+        consent_id: str | None = None
+        session = connection.execute(
+            """
+            SELECT s.*, p.role, p.account_status, p.verification_status,
+                   p.credential_status, p.is_synthetic
+            FROM security_sessions s
+            JOIN security_subjects p ON p.id = s.subject_id
+            WHERE s.id = ?
+            """,
+            (session_id,),
+        ).fetchone()
+        if session is None:
+            reason = "session_not_found"
+        else:
+            subject_id = session["subject_id"]
+            server_role = session["role"]
+            reason = self._session_denial_reason(session) or ""
+            if not reason and (
+                session["account_status"] != "active"
+                or session["verification_status"] != "verified"
+            ):
+                reason = "inactive_or_unverified_subject"
+            if not reason and capability not in CAPABILITIES.get(server_role, set()):
+                reason = "capability_forbidden"
+            if (
+                not reason
+                and server_role == "verified_doctor"
+                and session["credential_status"] != "active"
+            ):
+                reason = "credential_inactive"
+            if not reason and server_role == "patient":
+                if capability in PATIENT_SELF_ONLY_CAPABILITIES and patient_subject_id != subject_id:
+                    reason = "other_patient_record_forbidden"
+            if not reason and server_role in {"verified_doctor", "care_executor"}:
+                reason, relationship_id, consent_id = self._relationship_or_consent_decision(
+                    connection,
+                    subject_id=subject_id,
+                    patient_subject_id=patient_subject_id,
+                    purpose=purpose,
+                    fields=fields,
+                )
+            if not reason and capability == "clinical_record.sign" and object_state != "doctor_reviewed":
+                reason = "object_state_forbids_signing"
+            if not reason and capability in HIGH_RISK_CAPABILITIES:
+                reason = self._step_up_denial_reason(session)
+            allowed = not reason
+        self.store.audit(
+            connection,
+            event_type="security.authorization.decision",
+            actor_id=subject_id,
+            object_type="authorization_target",
+            object_id=object_id,
+            metadata={
+                "allowed": allowed,
+                "reason": "allowed" if allowed else reason,
+                "server_role": server_role,
+                "client_role_claim": client_role_claim,
+                "client_role_authoritative": False,
+                "capability": capability,
+                "patient_subject_id": patient_subject_id,
+                "purpose": purpose,
+                "data_categories": sorted(fields),
+                "session_id": session_id,
+                "relationship_id": relationship_id,
+                "consent_id": consent_id,
+            },
+        )
         return {
-            "allowed": True,
-            "reason": "allowed",
+            "allowed": allowed,
+            "reason": "allowed" if allowed else reason,
             "subject_id": subject_id,
             "server_role": server_role,
             "capability": capability,
+            "relationship_id": relationship_id,
+            "consent_id": consent_id,
         }
 
     def overview(self) -> dict[str, Any]:
@@ -716,7 +764,7 @@ class IdentityAccessService:
             "counts": counts,
         }
 
-    def _relationship_or_consent_denial(
+    def _relationship_or_consent_decision(
         self,
         connection: sqlite3.Connection,
         *,
@@ -724,9 +772,9 @@ class IdentityAccessService:
         patient_subject_id: str | None,
         purpose: str | None,
         fields: set[str],
-    ) -> str:
+    ) -> tuple[str, str | None, str | None]:
         if patient_subject_id is None or purpose is None or not fields:
-            return "relationship_and_consent_context_required"
+            return "relationship_and_consent_context_required", None, None
         now = utc_now()
         relationship = connection.execute(
             """
@@ -739,7 +787,7 @@ class IdentityAccessService:
             (patient_subject_id, subject_id, now, now),
         ).fetchone()
         if relationship is None:
-            return "active_relationship_required"
+            return "active_relationship_required", None, None
         consent = connection.execute(
             """
             SELECT * FROM security_consents
@@ -751,11 +799,11 @@ class IdentityAccessService:
             (relationship["id"], patient_subject_id, purpose, now, now),
         ).fetchone()
         if consent is None:
-            return "active_consent_required"
+            return "active_consent_required", relationship["id"], None
         allowed_fields = set(json.loads(consent["data_categories_json"]))
         if not fields.issubset(allowed_fields):
-            return "consent_field_scope_denied"
-        return ""
+            return "consent_field_scope_denied", relationship["id"], consent["id"]
+        return "", relationship["id"], consent["id"]
 
     def _invitation_denial_reason(
         self, invitation: sqlite3.Row, recipient_binding: str
